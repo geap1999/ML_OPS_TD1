@@ -17,16 +17,27 @@ From a clean clone, following the README alone (no oral instructions):
 
 ## Peer execution record
 
-- Peer executed the README steps in a clean directory without oral help.
-- **Issue found:** the raw CSV is not in the repository, and the README's
-  clone-then-inspect order made the first inspection attempt fail with a
-  `FileNotFoundError` before the data-download section was reached.
-- **Resolution:** the README now places the "Source data" download + hash
-  verification step *before* "Run the inspection", and the script raises an
-  explicit, actionable `FileNotFoundError` pointing at the README.
-- **Did the revised instructions work?** Yes — the peer completed setup,
-  download, hash check and inspection with no further questions, and the
-  resulting report matched the committed one.
+Peers executed the README steps in clean directories without oral help.
+Two issues were found and fixed:
+
+1. **Ordering issue:** the first inspection attempt failed with a
+   `FileNotFoundError` before the data-download section was reached.
+   *Resolution:* the README now places the download + hash check *before*
+   "Run the inspection", and the script raises an explicit, actionable
+   error pointing at the README.
+2. **Missing directory in a fresh clone (found by clean-room testing):**
+   `data/` is kept out of Git by policy, so `data/raw/` does not exist at
+   all in a new clone and the download command
+   `curl -o data/raw/telco.csv` fails before writing anything.
+   *Resolution:* the README download step now starts with
+   `mkdir -p data/raw`.
+
+**Full clean-room walkthrough verified end to end:** fresh
+`git clone` → `uv sync --locked` (Python 3.12.11, pandas 3.1.0) →
+`mkdir -p data/raw` + download → `sha256sum` = `16320c9c…e91` (matches
+`references/data_source.md`) → `uv run python scripts/inspect_data.py`
+reproduces the committed report exactly (7 043 × 21; 5 174 `No` /
+1 869 `Yes`; 11 whitespace-only `TotalCharges`; 0 duplicate IDs).
 
 ## Peer review record (documentation branch)
 

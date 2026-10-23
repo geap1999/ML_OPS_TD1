@@ -44,10 +44,11 @@ uv sync --locked          # recreate the exact environment from uv.lock
 
 ## Source data
 
-The raw customer snapshot is **not** in Git. Download it once into
-`data/raw/telco.csv` and verify its hash:
+The raw customer snapshot is **not** in Git, and `data/raw/` does not exist
+in a fresh clone. Create it, download the CSV and verify its hash:
 
 ```sh
+mkdir -p data/raw
 curl -fsSL -o data/raw/telco.csv \
   https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/1fd6fd70906479be1712e64cfc0ea89f58466629/data/Telco-Customer-Churn.csv
 sha256sum data/raw/telco.csv
