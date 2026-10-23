@@ -1,0 +1,173 @@
+{
+  "run_utc": "2026-10-23T16:56:38.088042+00:00",
+  "evaluated_on": "validation",
+  "test_set_used": false,
+  "split": {
+    "seed": 42,
+    "sizes": {
+      "train": 4225,
+      "validation": 1409,
+      "test": 1409
+    }
+  },
+  "features": [
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "Contract",
+    "InternetService",
+    "PaymentMethod"
+  ],
+  "threshold": 0.5,
+  "metric_definitions": {
+    "positive_class": "Churn = Yes, encoded as 1",
+    "average_precision": "sklearn average_precision_score on positive-class probabilities",
+    "roc_auc": "sklearn roc_auc_score on positive-class probabilities",
+    "accuracy": "share of correct class predictions at the threshold",
+    "precision": "TP / (TP + FP) at the threshold (0 if no positive prediction)",
+    "recall": "TP / (TP + FN) at the threshold",
+    "f1": "harmonic mean of precision and recall at the threshold",
+    "threshold_rule": "predict churn when positive-class probability >= threshold",
+    "fit_seconds": "wall-clock time of one pipeline.fit on this machine; descriptive only"
+  },
+  "selection": {
+    "metric": "average_precision",
+    "tolerance": 0.01,
+    "rule": "Highest validation average precision among learned candidates; any candidate within `tolerance` of the best is a tie, and ties go to the lowest complexity_rank (the simpler model).",
+    "decision": {
+      "selected": "random_forest",
+      "best_by_metric": "random_forest",
+      "tied": [
+        "random_forest"
+      ],
+      "rationale": "random_forest has the highest validation average_precision (0.6642) and no simpler candidate is within 0.01."
+    }
+  },
+  "rows": [
+    {
+      "model": "majority_baseline",
+      "estimator": "DummyClassifier",
+      "is_baseline": true,
+      "complexity_rank": 0,
+      "params": {
+        "constant": null,
+        "random_state": 42,
+        "strategy": "most_frequent"
+      },
+      "fit_seconds": 0.0163,
+      "average_precision": 0.2654364797728886,
+      "roc_auc": 0.5,
+      "accuracy": 0.7345635202271115,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tn": 1035,
+      "fp": 0,
+      "fn": 374,
+      "tp": 0
+    },
+    {
+      "model": "logistic_regression",
+      "estimator": "LogisticRegression",
+      "is_baseline": false,
+      "complexity_rank": 1,
+      "params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": 0.0,
+        "max_iter": 1000,
+        "n_jobs": null,
+        "penalty": "deprecated",
+        "random_state": 42,
+        "solver": "lbfgs",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "fit_seconds": 0.0516,
+      "average_precision": 0.6474664703085159,
+      "roc_auc": 0.8492288615050763,
+      "accuracy": 0.8041163946061036,
+      "precision": 0.6644295302013423,
+      "recall": 0.5294117647058824,
+      "f1": 0.5892857142857143,
+      "tn": 935,
+      "fp": 100,
+      "fn": 176,
+      "tp": 198
+    },
+    {
+      "model": "decision_tree",
+      "estimator": "DecisionTreeClassifier",
+      "is_baseline": false,
+      "complexity_rank": 2,
+      "params": {
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": 5,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 20,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "random_state": 42,
+        "splitter": "best"
+      },
+      "fit_seconds": 0.0299,
+      "average_precision": 0.6173000162034762,
+      "roc_auc": 0.8376927846237309,
+      "accuracy": 0.8026969481902059,
+      "precision": 0.635593220338983,
+      "recall": 0.6016042780748663,
+      "f1": 0.6181318681318682,
+      "tn": 906,
+      "fp": 129,
+      "fn": 149,
+      "tp": 225
+    },
+    {
+      "model": "random_forest",
+      "estimator": "RandomForestClassifier",
+      "is_baseline": false,
+      "complexity_rank": 3,
+      "params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": 8,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 10,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 300,
+        "n_jobs": 1,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "fit_seconds": 0.9568,
+      "average_precision": 0.6641660575416509,
+      "roc_auc": 0.8533390167661266,
+      "accuracy": 0.794889992902768,
+      "precision": 0.6534296028880866,
+      "recall": 0.4839572192513369,
+      "f1": 0.5560675883256528,
+      "tn": 939,
+      "fp": 96,
+      "fn": 193,
+      "tp": 181
+    }
+  ]
+}

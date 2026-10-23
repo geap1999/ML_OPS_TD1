@@ -1,0 +1,107 @@
+{
+  "milestone": "TP02 section 1 - first working model",
+  "run_utc": "2026-10-23T16:56:34.125344+00:00",
+  "data_sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+  "split": {
+    "seed": 42,
+    "sizes": {
+      "train": 4225,
+      "validation": 1409,
+      "test": 1409
+    }
+  },
+  "features": [
+    "tenure",
+    "MonthlyCharges"
+  ],
+  "fitted_on": "train",
+  "evaluated_on": "validation",
+  "metric_definitions": {
+    "positive_class": "Churn = Yes, encoded as 1",
+    "average_precision": "sklearn average_precision_score on positive-class probabilities",
+    "roc_auc": "sklearn roc_auc_score on positive-class probabilities",
+    "accuracy": "share of correct class predictions at the threshold",
+    "precision": "TP / (TP + FP) at the threshold (0 if no positive prediction)",
+    "recall": "TP / (TP + FN) at the threshold",
+    "f1": "harmonic mean of precision and recall at the threshold",
+    "threshold_rule": "predict churn when positive-class probability >= threshold",
+    "fit_seconds": "wall-clock time of one pipeline.fit on this machine; descriptive only"
+  },
+  "models": {
+    "majority_baseline": {
+      "n_samples": 1409,
+      "positive_rate": 0.2654364797728886,
+      "score_type": "predict_proba",
+      "threshold": 0.5,
+      "average_precision": 0.2654364797728886,
+      "roc_auc": 0.5,
+      "accuracy": 0.7345635202271115,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "label_meaning": {
+          "0": "No churn",
+          "1": "Churn (positive class)"
+        },
+        "orientation": "rows = true label, columns = predicted label",
+        "matrix": [
+          [
+            1035,
+            0
+          ],
+          [
+            374,
+            0
+          ]
+        ],
+        "tn": 1035,
+        "fp": 0,
+        "fn": 374,
+        "tp": 0
+      }
+    },
+    "first_model": {
+      "n_samples": 1409,
+      "positive_rate": 0.2654364797728886,
+      "score_type": "predict_proba",
+      "threshold": 0.5,
+      "average_precision": 0.5986119557081769,
+      "roc_auc": 0.8138611175695574,
+      "accuracy": 0.7821149751596878,
+      "precision": 0.6413502109704642,
+      "recall": 0.40641711229946526,
+      "f1": 0.49754500818330605,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "label_meaning": {
+          "0": "No churn",
+          "1": "Churn (positive class)"
+        },
+        "orientation": "rows = true label, columns = predicted label",
+        "matrix": [
+          [
+            950,
+            85
+          ],
+          [
+            222,
+            152
+          ]
+        ],
+        "tn": 950,
+        "fp": 85,
+        "fn": 222,
+        "tp": 152
+      }
+    }
+  },
+  "note": "Not comparable as an algorithm improvement with the six-feature candidates: the feature set differs."
+}

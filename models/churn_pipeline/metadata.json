@@ -1,0 +1,237 @@
+{
+  "artifact": {
+    "name": "churn_pipeline",
+    "created_utc": "2026-10-23T16:56:38.155468+00:00",
+    "format": "joblib (pickle); load only from a trusted source",
+    "content": "fitted sklearn Pipeline: preprocessor + classifier",
+    "train_command": "uv run python scripts/train.py"
+  },
+  "data": {
+    "source_path": "data/raw/telco.csv",
+    "sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+    "n_records": 7043
+  },
+  "split": {
+    "seed": 42,
+    "fractions": {
+      "seed": 42,
+      "train_fraction": 0.6,
+      "validation_fraction": 0.2,
+      "test_fraction": 0.2
+    },
+    "sizes": {
+      "train": 4225,
+      "validation": 1409,
+      "test": 1409
+    },
+    "stratified_on": "Churn",
+    "allocation_file": "split_allocation.csv",
+    "test_set_used_for_selection": false
+  },
+  "features": {
+    "id_column": "customerID",
+    "target_column": "Churn",
+    "positive_class": {
+      "label": "Yes",
+      "encoded_as": 1
+    },
+    "negative_class": {
+      "label": "No",
+      "encoded_as": 0
+    },
+    "numeric": [
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges"
+    ],
+    "categorical": [
+      "Contract",
+      "InternetService",
+      "PaymentMethod"
+    ],
+    "input_contract": {
+      "numeric": "float64; blank text -> NaN (imputed); other non-numeric text -> error",
+      "categorical": "string; blank -> NaN (imputed); unseen category -> all-zero one-hot (ignored)",
+      "missing_column": "KeyError"
+    }
+  },
+  "preprocessing": {
+    "num": {
+      "columns": [
+        "tenure",
+        "MonthlyCharges",
+        "TotalCharges"
+      ],
+      "imputer": "SimpleImputer(strategy='median')",
+      "scaler": "StandardScaler"
+    },
+    "cat": {
+      "columns": [
+        "Contract",
+        "InternetService",
+        "PaymentMethod"
+      ],
+      "imputer": "SimpleImputer(strategy='most_frequent')",
+      "encoder": "OneHotEncoder(handle_unknown='ignore', sparse_output=False)"
+    },
+    "remainder": "drop",
+    "fitted_on": "training split only",
+    "learned_statistics": {
+      "num_imputer_statistics": {
+        "tenure": 29.0,
+        "MonthlyCharges": 70.55,
+        "TotalCharges": 1373.625
+      },
+      "num_scaler": {
+        "mean_": {
+          "tenure": 32.44284023668639,
+          "MonthlyCharges": 64.89450887573965,
+          "TotalCharges": 2297.7652366863904
+        },
+        "scale_": {
+          "tenure": 24.6262689681974,
+          "MonthlyCharges": 30.322413069289123,
+          "TotalCharges": 2285.9247797362173
+        }
+      },
+      "cat_categories": {
+        "Contract": [
+          "Month-to-month",
+          "One year",
+          "Two year"
+        ],
+        "InternetService": [
+          "DSL",
+          "Fiber optic",
+          "No"
+        ],
+        "PaymentMethod": [
+          "Bank transfer (automatic)",
+          "Credit card (automatic)",
+          "Electronic check",
+          "Mailed check"
+        ]
+      }
+    }
+  },
+  "model": {
+    "name": "random_forest",
+    "estimator": "RandomForestClassifier",
+    "params": {
+      "bootstrap": true,
+      "ccp_alpha": 0.0,
+      "class_weight": null,
+      "criterion": "gini",
+      "max_depth": 8,
+      "max_features": "sqrt",
+      "max_leaf_nodes": null,
+      "max_samples": null,
+      "min_impurity_decrease": 0.0,
+      "min_samples_leaf": 10,
+      "min_samples_split": 2,
+      "min_weight_fraction_leaf": 0.0,
+      "monotonic_cst": null,
+      "n_estimators": 300,
+      "n_jobs": 1,
+      "oob_score": false,
+      "random_state": 42,
+      "verbose": 0,
+      "warm_start": false
+    }
+  },
+  "selection": {
+    "metric": "average_precision",
+    "tolerance": 0.01,
+    "rule": "Highest validation average precision among learned candidates; any candidate within `tolerance` of the best is a tie, and ties go to the lowest complexity_rank (the simpler model).",
+    "threshold": 0.5,
+    "decision": {
+      "selected": "random_forest",
+      "best_by_metric": "random_forest",
+      "tied": [
+        "random_forest"
+      ],
+      "rationale": "random_forest has the highest validation average_precision (0.6642) and no simpler candidate is within 0.01."
+    },
+    "comparison_file": "reports/model_comparison.json"
+  },
+  "metrics": {
+    "validation": {
+      "n_samples": 1409,
+      "positive_rate": 0.2654364797728886,
+      "score_type": "predict_proba",
+      "threshold": 0.5,
+      "average_precision": 0.6641660575416509,
+      "roc_auc": 0.8533390167661266,
+      "accuracy": 0.794889992902768,
+      "precision": 0.6534296028880866,
+      "recall": 0.4839572192513369,
+      "f1": 0.5560675883256528,
+      "confusion_matrix": {
+        "labels": [
+          0,
+          1
+        ],
+        "label_meaning": {
+          "0": "No churn",
+          "1": "Churn (positive class)"
+        },
+        "orientation": "rows = true label, columns = predicted label",
+        "matrix": [
+          [
+            939,
+            96
+          ],
+          [
+            193,
+            181
+          ]
+        ],
+        "tn": 939,
+        "fp": 96,
+        "fn": 193,
+        "tp": 181
+      }
+    }
+  },
+  "config": {
+    "path": "configs/train.json",
+    "sha256": "0e209609fb00fe67fffce8382eb7b22338656b94281a582fd40141c33416bd02"
+  },
+  "code": {
+    "git_commit": "2de2e6d2cdaf2390aaedd3233f00dea968b45adc",
+    "git_dirty": true,
+    "source_sha256": {
+      "telco_churn/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "telco_churn/artifacts.py": "64d3394813ca9e3844273e1752125241d234dc9b1b80d237ed9248c505ad0f90",
+      "telco_churn/config.py": "b5ba19d6185d86831b8cb92637c19ea5594cadfee8b578f338501ad4b5edb73f",
+      "telco_churn/dataset.py": "bc7aa3a05f8ec73806cf9753c53ed43772332369d303078893fc734ce4580f2b",
+      "telco_churn/evaluation.py": "804c4dbe729465278d4b4c907ad8b698233879d07a66a38229590a97571b3924",
+      "telco_churn/features.py": "c8798f8540749aedb2ee9a16ff8249bf8eb245317ec34a7b037c753e46147a22",
+      "telco_churn/pipeline.py": "bdf42d98b1dc5f4491b6eab7210ba09ce29fba39772666a2ec8d2f33e4061b96",
+      "telco_churn/prediction.py": "f8b96e844a3f6d588350cf658192bc40582ecc03af01f2259e7c0c87991f01e4",
+      "telco_churn/provenance.py": "f64cd3aec43be25ed7afb8242002a5b8283c1b2963a361980323423a3d038a10",
+      "telco_churn/reporting.py": "b483fdea39b046295542364254d0f4bcd36a51c11d0180220ce76b42399f39ca",
+      "telco_churn/splitting.py": "69c94ec6347e3f570e81a303c73292b0e2a0010d0259bf0597d83d16b29a2caa",
+      "telco_churn/training.py": "fe5116fdb17bc14492d023e39c6014ac9b1a9f1d62064cb7ee3081290b496959",
+      "telco_churn/verification.py": "e5529fb1ced3029123f2f34568420fa94b75c23b50696d0cc4148f94488cf073"
+    }
+  },
+  "environment": {
+    "python": "3.12.11 (main, Oct  7 2025, 15:34:39) [Clang 20.1.4 ]",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "packages": {
+      "telco_churn": "0.0.1",
+      "pandas": "3.1.0",
+      "numpy": "2.5.4",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.18.1",
+      "joblib": "1.6.0"
+    }
+  },
+  "artifact_files": {
+    "pipeline.joblib": "5d9712078d6c9a018aa3875c2a99fc808c60f3f3621e50cc59e5e99178c95416",
+    "split_allocation.csv": "a3f2c8e43099a641e2513a50d8f75e86e0a7bfdcd36f9f1347b5a4e05917728d",
+    "reference_inputs.csv": "d083fb562f21a6adad2fb349b1ee08e5ce7152520328882ba06fbb19ee3d783e",
+    "reference_predictions.csv": "260f34dd78bb608ad32aaa4c04f7e844722e30282be179d6c61d2fe70e46ddfc"
+  }
+}

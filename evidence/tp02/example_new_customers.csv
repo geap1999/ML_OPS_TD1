@@ -1,0 +1,4 @@
+customerID,tenure,MonthlyCharges,TotalCharges,Contract,InternetService,PaymentMethod
+NEW-0001,2,89.10,178.20,Month-to-month,Fiber optic,Electronic check
+NEW-0002,0,45.25, ,Two year,DSL,Mailed check
+NEW-0003,40,70.00,2800.00,Three year,DSL,Bank transfer (automatic)

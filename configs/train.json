@@ -1,0 +1,68 @@
+{
+  "data": {
+    "source_path": "data/raw/telco.csv"
+  },
+  "split": {
+    "seed": 42,
+    "train_fraction": 0.6,
+    "validation_fraction": 0.2,
+    "test_fraction": 0.2
+  },
+  "features": {
+    "id_column": "customerID",
+    "target_column": "Churn",
+    "positive_label": "Yes",
+    "negative_label": "No",
+    "numeric": ["tenure", "MonthlyCharges", "TotalCharges"],
+    "categorical": ["Contract", "InternetService", "PaymentMethod"]
+  },
+  "first_model": {
+    "features": ["tenure", "MonthlyCharges"],
+    "estimator": "logistic_regression",
+    "params": {"max_iter": 1000}
+  },
+  "preprocessing": {
+    "numeric_imputer": "median",
+    "numeric_scaler": "standard",
+    "categorical_imputer": "most_frequent",
+    "unknown_categories": "ignore"
+  },
+  "candidates": [
+    {
+      "name": "majority_baseline",
+      "estimator": "dummy",
+      "params": {"strategy": "most_frequent"},
+      "complexity_rank": 0
+    },
+    {
+      "name": "logistic_regression",
+      "estimator": "logistic_regression",
+      "params": {"max_iter": 1000},
+      "complexity_rank": 1
+    },
+    {
+      "name": "decision_tree",
+      "estimator": "decision_tree",
+      "params": {"max_depth": 5, "min_samples_leaf": 20},
+      "complexity_rank": 2
+    },
+    {
+      "name": "random_forest",
+      "estimator": "random_forest",
+      "params": {"n_estimators": 300, "max_depth": 8, "min_samples_leaf": 10, "n_jobs": 1},
+      "complexity_rank": 3
+    }
+  ],
+  "selection": {
+    "metric": "average_precision",
+    "tolerance": 0.01,
+    "rule": "Highest validation average precision among learned candidates; any candidate within `tolerance` of the best is a tie, and ties go to the lowest complexity_rank (the simpler model).",
+    "threshold": 0.5
+  },
+  "outputs": {
+    "first_model_report": "reports/first_model.json",
+    "comparison_json": "reports/model_comparison.json",
+    "comparison_csv": "reports/model_comparison.csv",
+    "artifact_dir": "models/churn_pipeline"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "checked_utc": "2026-10-23T16:56:42.331000+00:00",
+  "artifact": "churn_pipeline",
+  "pipeline_sha256": "5d9712078d6c9a018aa3875c2a99fc808c60f3f3621e50cc59e5e99178c95416",
+  "n_records": 10,
+  "tolerance_abs_probability": 1e-12,
+  "max_abs_probability_difference": 0.0,
+  "checks": {
+    "labels_absent_from_inputs": true,
+    "same_customer_order": true,
+    "probabilities_within_tolerance": true,
+    "class_predictions_identical": true,
+    "learned_statistics_unchanged_by_predict": true,
+    "fit_disabled_during_inference": true
+  },
+  "passed": true
+}

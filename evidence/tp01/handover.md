@@ -4,10 +4,11 @@
 
 From a clean clone, following the README alone (no oral instructions):
 
-1. Recreate the exact environment with `uv sync --locked` (Python 3.12.11,
-   pandas 3.1.0, per `uv.lock`).
+1. Recreate the exact environment with `uv sync --locked` (Python 3.12.11
+   pinned by `.python-version`, pandas 3.1.0 per `uv.lock`).
 2. Download the original CSV from the commit-pinned URL and confirm its
-   SHA-256 (`16320c9c…e91`, full value in `references/data_source.md`).
+   SHA-256 with `uv run python scripts/download_data.py` (`16320c9c…e91`,
+   full value in `references/data_source.md`), on Linux, macOS or Windows.
 3. Run `uv run python scripts/inspect_data.py` and obtain the same
    machine-readable report as `reports/data_overview.json`
    (7 043 × 21, target 73.5% `No` / 26.5% `Yes`, 11 whitespace-only
@@ -31,6 +32,22 @@ Two issues were found and fixed:
    `curl -o data/raw/telco.csv` fails before writing anything.
    *Resolution:* the README download step now starts with
    `mkdir -p data/raw`.
+3. **Interpreter version not pinned (found by a Windows clean-room run):**
+   `uv.lock` only records `requires-python = "==3.12.*"`, so on a machine
+   that already had Python 3.12.10, `uv sync --locked` reused it. The report
+   data was still identical, but the "Python 3.12.11" claim did not hold.
+   *Resolution:* a committed `.python-version` (`3.12.11`) now pins the
+   interpreter; uv downloads it if it is missing.
+4. **Setup only worked in a POSIX shell (found on Windows):** the download
+   step used `mkdir -p`, `curl` with `\` continuations and `sha256sum`, none
+   of which work as written in PowerShell or cmd. Reports also differed by
+   OS for reasons unrelated to the data: Windows wrote CRLF line endings,
+   and `source.path` recorded each user's absolute path.
+   *Resolution:* `uv run python scripts/download_data.py` (stdlib only) now
+   creates `data/raw/`, downloads, verifies the SHA-256 and refuses
+   mismatched bytes on every OS. The report is written with LF endings and a
+   project-relative `source.path`, and `.gitattributes` keeps line endings
+   consistent in Git.
 
 **Full clean-room walkthrough verified end to end:** fresh
 `git clone` → `uv sync --locked` (Python 3.12.11, pandas 3.1.0) →
@@ -38,6 +55,13 @@ Two issues were found and fixed:
 `references/data_source.md`) → `uv run python scripts/inspect_data.py`
 reproduces the committed report exactly (7 043 × 21; 5 174 `No` /
 1 869 `Yes`; 11 whitespace-only `TotalCharges`; 0 duplicate IDs).
+
+**Cross-platform check (after fixes 3 and 4):** the same README commands
+were run from a fresh copy on Windows 11 and on Ubuntu 24.04 (WSL2), both
+under Python 3.12.11 and pandas 3.1.0. The SHA-256 matched on both, and the
+two reports are byte-identical except for `timestamp_utc`, `platform` and
+the interpreter build string. `reports/data_overview.json` was regenerated
+from the Linux run so it now records the relative `source.path`.
 
 ## Peer review record (documentation branch)
 

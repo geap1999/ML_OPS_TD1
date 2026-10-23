@@ -16,11 +16,9 @@ Download the commit-pinned CSV from the IBM source repository:
 https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/1fd6fd70906479be1712e64cfc0ea89f58466629/data/Telco-Customer-Churn.csv
 ```
 
-Then verify the hash before using it:
-
-```sh
-sha256sum data/raw/telco.csv
-```
+`uv run python scripts/download_data.py` does this and verifies the hash on
+any OS. To check by hand: `sha256sum data/raw/telco.csv` (Linux/macOS) or
+`Get-FileHash data/raw/telco.csv -Algorithm SHA256` (Windows PowerShell).
 
 A different hash means the bytes differ: do not treat that file as the original
 snapshot. This commit-pinned URL guarantees that every teammate downloads

@@ -9,9 +9,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 import hashlib
 import importlib.metadata
+import os
 from pathlib import Path
 import platform
 import sys
+import urllib.request
 
 import pandas as pd
 
@@ -20,6 +22,8 @@ SOURCE_URL = (
     "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/"
     "1fd6fd70906479be1712e64cfc0ea89f58466629/data/Telco-Customer-Churn.csv"
 )
+# Identity of the original bytes: the reproduction contract, not the filename.
+EXPECTED_SHA256 = "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_PATH = PROJECT_ROOT / "data" / "raw" / "telco.csv"
@@ -34,14 +38,63 @@ def sha256sum(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def download_raw(
+    destination: Path = DEFAULT_SOURCE_PATH,
+    url: str = SOURCE_URL,
+    expected_sha256: str = EXPECTED_SHA256,
+) -> Path:
+    """Download the original CSV and verify its SHA-256, on any OS.
+
+    An existing file with the expected hash is kept as is. An existing file
+    with another hash is never overwritten: the raw input is immutable, so a
+    mismatch must be resolved by a person. A new download only lands at
+    ``destination`` once its hash has been verified.
+    """
+    if destination.exists():
+        actual = sha256sum(destination)
+        if actual != expected_sha256:
+            raise ValueError(
+                f"{destination} exists but its SHA-256 is {actual}, expected "
+                f"{expected_sha256}. It is not the original snapshot; delete it "
+                "and download again."
+            )
+        return destination
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    partial = destination.with_name(destination.name + ".part")
+    with urllib.request.urlopen(url) as response:
+        partial.write_bytes(response.read())
+    actual = sha256sum(partial)
+    if actual != expected_sha256:
+        partial.unlink()
+        raise ValueError(
+            f"Downloaded file has SHA-256 {actual}, expected {expected_sha256}. "
+            "The source bytes differ from the recorded snapshot."
+        )
+    os.replace(partial, destination)
+    return destination
+
+
 def read_raw(source_path: Path = DEFAULT_SOURCE_PATH) -> pd.DataFrame:
     """Read the original CSV unchanged; never mutate the file on disk."""
     if not source_path.exists():
         raise FileNotFoundError(
             f"Raw dataset not found at {source_path}. "
-            "Download the commit-pinned CSV into data/raw/ (see README.md)."
+            "Run `uv run python scripts/download_data.py` first (see README.md)."
         )
     return pd.read_csv(source_path)
+
+
+def _project_relative(path: Path) -> str:
+    """POSIX-style path relative to the project root when possible.
+
+    Keeps the report identical across machines and operating systems instead
+    of recording one user's absolute path.
+    """
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
 
 
 def _string_columns(df: pd.DataFrame) -> list[str]:
@@ -103,7 +156,7 @@ def build_report(source_path: Path = DEFAULT_SOURCE_PATH) -> dict:
             "command": "uv run python scripts/inspect_data.py",
         },
         "source": {
-            "path": str(source_path),
+            "path": _project_relative(source_path),
             "size_bytes": source_path.stat().st_size,
             "sha256": sha256sum(source_path),
             "origin_url": SOURCE_URL,
@@ -125,12 +178,16 @@ def write_report(
     report: dict,
     report_path: Path = DEFAULT_REPORT_PATH,
 ) -> Path:
-    """Save the report as machine-readable JSON (create parents as needed)."""
+    """Save the report as machine-readable JSON (create parents as needed).
+
+    Line endings are forced to LF so Windows and Linux runs write the same bytes.
+    """
     import json
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     return report_path
