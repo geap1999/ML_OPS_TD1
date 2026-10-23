@@ -1,0 +1,2 @@
+# Same bytes on Linux, macOS and Windows checkouts, whatever core.autocrlf says.
+* text=auto eol=lf

@@ -1,18 +1,18 @@
 {
   "run": {
-    "timestamp_utc": "2026-10-23T15:22:39.725570+00:00",
+    "timestamp_utc": "2026-10-23T16:41:59.464986+00:00",
     "command": "uv run python scripts/inspect_data.py"
   },
   "source": {
-    "path": "/home/geap/Storage/esilv_projects/ml_ops/td1/telco-churn/data/raw/telco.csv",
+    "path": "data/raw/telco.csv",
     "size_bytes": 970457,
     "sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
     "origin_url": "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/1fd6fd70906479be1712e64cfc0ea89f58466629/data/Telco-Customer-Churn.csv",
     "note": "Original snapshot; never modified locally."
   },
   "environment": {
-    "python": "3.12.11 (main, Sep 18 2025, 19:47:19) [Clang 20.1.4 ]",
-    "platform": "Linux-6.12.95+deb13-amd64-x86_64-with-glibc2.41",
+    "python": "3.12.11 (main, Oct  7 2025, 15:34:39) [Clang 20.1.4 ]",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "pandas": "3.1.0",
     "telco_churn_version": "0.0.1"
   },

@@ -1,0 +1,26 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-9.1.1, pluggy-1.7.0 -- /tmp/telco-churn-venv/bin/python
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/matin/Documents/MLOPS/ML_OPS_TD1
+configfile: pyproject.toml
+testpaths: tests
+collecting ... collected 16 items
+
+tests/test_reliability.py::TestSplits::test_customer_ids_do_not_overlap PASSED [  6%]
+tests/test_reliability.py::TestSplits::test_same_seed_gives_same_allocation PASSED [ 12%]
+tests/test_reliability.py::TestSplits::test_sizes_and_stratification PASSED [ 18%]
+tests/test_reliability.py::TestTrainingOnlyStatistics::test_imputer_medians_match_training_data PASSED [ 25%]
+tests/test_reliability.py::TestTrainingOnlyStatistics::test_scaler_means_match_imputed_training_data PASSED [ 31%]
+tests/test_reliability.py::TestTrainingOnlyStatistics::test_prediction_does_not_refit PASSED [ 37%]
+tests/test_reliability.py::TestDocumentedInputPolicy::test_blank_total_charges_is_imputed_with_training_median PASSED [ 43%]
+tests/test_reliability.py::TestDocumentedInputPolicy::test_unseen_category_is_encoded_as_all_zeros PASSED [ 50%]
+tests/test_reliability.py::TestDocumentedInputPolicy::test_malformed_numeric_text_is_rejected PASSED [ 56%]
+tests/test_reliability.py::TestSchemaFailures::test_missing_column_fails_at_the_boundary PASSED [ 62%]
+tests/test_reliability.py::TestSchemaFailures::test_missing_column_also_fails_inside_the_pipeline PASSED [ 68%]
+tests/test_reliability.py::TestSchemaFailures::test_schema_refuses_id_or_target_as_input PASSED [ 75%]
+tests/test_reliability.py::TestSchemaFailures::test_unexpected_target_label_is_rejected PASSED [ 81%]
+tests/test_reliability.py::TestArtifactReload::test_fresh_process_reload_matches PASSED [ 87%]
+tests/test_reliability.py::TestArtifactReload::test_selection_never_used_test_set PASSED [ 93%]
+tests/test_reliability.py::TestArtifactReload::test_tampered_artifact_is_refused PASSED [100%]
+
+============================== 16 passed ==============================
