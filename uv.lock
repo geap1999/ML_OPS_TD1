@@ -252,6 +252,7 @@ version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "joblib" },
+    { name = "numpy" },
     { name = "pandas" },
     { name = "pip" },
     { name = "python-dotenv" },
@@ -267,6 +268,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "joblib", specifier = ">=1.6.0" },
+    { name = "numpy", specifier = ">=2.5.4" },
     { name = "pandas", specifier = ">=3.1.0" },
     { name = "pip" },
     { name = "python-dotenv" },
