@@ -98,12 +98,79 @@ runs except the run timestamp.
 Note: folder names communicate intent; the project does not implement
 Bronze/Silver/Gold storage, data versioning or access control by itself.
 
-## Roadmap (TP02)
+## TP02 — training pipeline, comparison and reusable artifact
 
-Untrained preprocessing/classifier builders in `telco_churn/pipeline.py`,
-training and candidate comparison in `telco_churn/training.py`, inference via
-a loaded fitted pipeline in `telco_churn/prediction.py`, run configuration in
-`configs/train.json`, saved pipelines plus metadata in `models/`.
+### Train (terminal)
+
+```sh
+uv run python scripts/train.py --milestone1   # first two-feature model + majority baseline
+uv run python scripts/train.py                # full: 3 candidates + baseline, selection, artifact
+```
+
+Source: `data/raw/telco.csv` (SHA-256-checked above). Configuration:
+`configs/train.json` — seed 42, stratified 60/20/20 split, six input
+features (`customerID` and `Churn` never inputs), parsing and preprocessing
+policies, candidate list, primary metric (validation **average precision**
+for class `Yes`, chosen before inspecting results), 0.5 threshold policy.
+
+### Predict (fresh process, inference only — no fit)
+
+```sh
+uv run python scripts/predict.py
+```
+
+Loads `models/selected_pipeline.joblib` (fitted preprocessing **+**
+classifier together), predicts the batch in `models/inference_batch.csv`
+and writes `reports/reload_check.json` proving agreement with the
+training-time predictions (classes exact, scores within 1e-9).
+
+### Checks
+
+```sh
+uv run pytest
+```
+
+13 focused checks (TP02 section 5): disjoint customer IDs across
+train/validation/test, imputer statistics equal training-only medians (and
+*not* the full-dataset value), prediction leaves statistics unchanged,
+blank-numeric and unseen-category policies, loud failure on a missing
+feature, save/reload agreement, no `fit` in the inference module.
+
+### Results and decisions
+
+- Comparison (`reports/model_comparison.json`, validation only):
+  logistic AP 0.647 / decision tree 0.603 / random forest 0.604 /
+  majority baseline 0.265. Selected: **logistic regression** — highest
+  validation average precision, the metric fixed in advance; simplest
+  candidate and fastest to fit.
+- The reserved test set was evaluated exactly once, after selection
+  (`metadata.json` → `final_test_evaluation`, guarded by a counter).
+- Milestone 1 (`reports/first_model_metrics.json`): the two-feature model
+  (accuracy 0.783, AP 0.599) beats the always-"No" baseline (accuracy
+  0.735 but recall 0.000) — and the six-feature jump to AP 0.647 reflects
+  the *feature set*, not the algorithm; no such claim is made.
+
+### Artifact metadata
+
+`models/metadata.json` retains: source hash + pinned URL, seed and
+split sizes, customer allocations (`models/split_allocation.json`),
+feature roles and parsing policy, preprocessing settings, classifier
+parameters, validation metrics and fit durations, positive-class
+definition, threshold policy, library versions, and the artifact hash.
+
+### Limitations
+
+- Unseen categories are encoded as all-zeros (`handle_unknown="ignore"`):
+  predictions *run*, but their reliability for such records is not proven.
+- 0.5 is the default threshold; a cost-driven threshold policy is a
+  possible extension (selection must still happen on validation only).
+- Fit durations are descriptive timings on one machine, not benchmarks.
+- Score calibration (is 0.8 an 80% risk?) has not been verified.
+
+## Roadmap (TP03)
+
+Experiment tracking and model versioning, building on these candidates and
+artifacts.
 
 ## Handover notes
 

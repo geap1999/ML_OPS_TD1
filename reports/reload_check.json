@@ -1,0 +1,26 @@
+{
+  "description": "Fresh-process reload check: predictions from the loaded artifact agree with the in-process predictions recorded at training time; no fit call occurs in this process.",
+  "artifact": "models/selected_pipeline.joblib",
+  "artifact_sha256": "c8e2c84758329679e9f68073db5110d184bbe78cccb579acc5c445ac394d625e",
+  "batch_size": 5,
+  "class_predictions_agree": true,
+  "score_tolerance": 1e-09,
+  "scores_agree": true,
+  "passed": true,
+  "actual": {
+    "class_predictions": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "positive_scores": [
+      0.016811744916433807,
+      0.37492785742322676,
+      0.3915148500224492,
+      0.3536112281251319,
+      0.26120978486150087
+    ]
+  }
+}

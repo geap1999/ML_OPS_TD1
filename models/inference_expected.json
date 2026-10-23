@@ -1,0 +1,18 @@
+{
+  "customer_ids": null,
+  "class_predictions": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "positive_scores": [
+    0.016811744916433807,
+    0.37492785742322676,
+    0.3915148500224492,
+    0.3536112281251319,
+    0.26120978486150087
+  ],
+  "tolerance": "class predictions exact; scores within 1e-9"
+}

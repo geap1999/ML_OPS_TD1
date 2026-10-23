@@ -1,0 +1,128 @@
+{
+  "created_utc": "2026-10-23T16:49:39.632437+00:00",
+  "source": {
+    "path": "/home/geap/Storage/esilv_projects/ml_ops/td1/telco-churn/data/raw/telco.csv",
+    "sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+    "origin_url": "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/1fd6fd70906479be1712e64cfc0ea89f58466629/data/Telco-Customer-Churn.csv"
+  },
+  "environment": {
+    "python": "3.12.11",
+    "platform": "Linux-6.12.95+deb13-amd64-x86_64-with-glibc2.41",
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.0",
+    "joblib": "1.6.0",
+    "telco_churn": "0.0.1"
+  },
+  "positive_class": "Yes (encoded 1)",
+  "threshold_policy": "classifier default (0.5) for class predictions",
+  "primary_selection_metric": "average_precision (positive class 'Yes'), chosen in advance on validation",
+  "split": {
+    "seed": 42,
+    "fractions": {
+      "train_frac": 0.6,
+      "validation_frac": 0.2,
+      "test_frac": 0.2,
+      "strategy": "stratified on Churn",
+      "allocation_fixture": "tests/conftest.py::split_allocations"
+    },
+    "sizes": {
+      "train": 4225,
+      "validation": 1409,
+      "test": 1409
+    },
+    "allocation_file": "split_allocation.json"
+  },
+  "feature_roles": {
+    "numeric": [
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges"
+    ],
+    "categorical": [
+      "Contract",
+      "InternetService",
+      "PaymentMethod"
+    ],
+    "never_inputs": [
+      "customerID",
+      "Churn"
+    ],
+    "parsing": {
+      "policy": "strip whitespace; empty-or-whitespace-only -> missing (imputed); any other non-numeric text -> visible error",
+      "total_charges_blank_count_expected": 11
+    }
+  },
+  "preprocessing": {
+    "numeric": {
+      "imputer": "median",
+      "scaler": "StandardScaler"
+    },
+    "categorical": {
+      "imputer": "most_frequent",
+      "encoder": "OneHotEncoder(handle_unknown='ignore', sparse_output=False)"
+    }
+  },
+  "comparison_table": "reports/model_comparison.json",
+  "selected_model": "logistic",
+  "selection_decision": "Selected 'logistic': highest validation average precision (metric fixed before inspecting results). The baseline and all other candidates are recorded for context. Test data played no role in this decision.",
+  "selected_classifier_params": {
+    "C": 1.0,
+    "class_weight": null,
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": 0.0,
+    "max_iter": 1000,
+    "n_jobs": null,
+    "penalty": "deprecated",
+    "random_state": null,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "artifact": {
+    "path": "/home/geap/Storage/esilv_projects/ml_ops/td1/telco-churn/models/selected_pipeline.joblib",
+    "sha256": "c8e2c84758329679e9f68073db5110d184bbe78cccb579acc5c445ac394d625e",
+    "format": "joblib (fitted sklearn Pipeline: preprocessor + classifier)"
+  },
+  "inference_batch": {
+    "file": "inference_batch.csv",
+    "expected": "inference_expected.json",
+    "schema": [
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges",
+      "Contract",
+      "InternetService",
+      "PaymentMethod"
+    ]
+  },
+  "test_evaluations": 1,
+  "final_test_evaluation_note": "Exactly one evaluation on the reserved test set, run after selection was finished.",
+  "final_test_evaluation": {
+    "positive_class": "Yes (encoded 1)",
+    "threshold": 0.5,
+    "n_examples": 1409,
+    "n_positives": 374,
+    "accuracy": 0.7849538679914834,
+    "precision_at_threshold": 0.6085626911314985,
+    "recall_at_threshold": 0.5320855614973262,
+    "f1_at_threshold": 0.5677603423680456,
+    "average_precision": 0.6182316410314878,
+    "confusion_matrix_labels": [
+      0,
+      1
+    ],
+    "confusion_matrix": [
+      [
+        907,
+        128
+      ],
+      [
+        175,
+        199
+      ]
+    ]
+  }
+}
