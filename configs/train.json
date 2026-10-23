@@ -1,0 +1,41 @@
+{
+  "seed": 42,
+  "positive_class": {"column": "Churn", "label": "Yes", "encoded": 1},
+  "split": {
+    "train_frac": 0.6,
+    "validation_frac": 0.2,
+    "test_frac": 0.2,
+    "strategy": "stratified on Churn",
+    "allocation_fixture": "tests/conftest.py::split_allocations"
+  },
+  "target_encoding": {"No": 0, "Yes": 1},
+  "features": {
+    "identifier": "customerID",
+    "target": "Churn",
+    "first_milestone_two_features": ["tenure", "MonthlyCharges"],
+    "numeric": ["tenure", "MonthlyCharges", "TotalCharges"],
+    "categorical": ["Contract", "InternetService", "PaymentMethod"],
+    "never_inputs": ["customerID", "Churn"]
+  },
+  "numeric_parsing": {
+    "policy": "strip whitespace; empty-or-whitespace-only -> missing (imputed); any other non-numeric text -> visible error",
+    "total_charges_blank_count_expected": 11
+  },
+  "preprocessing": {
+    "numeric": {"imputer": "median", "scaler": "StandardScaler"},
+    "categorical": {"imputer": "most_frequent", "encoder": "OneHotEncoder(handle_unknown='ignore', sparse_output=False)"}
+  },
+  "candidates": {
+    "majority_baseline": {"class": "DummyClassifier(strategy='most_frequent')"},
+    "logistic": {"class": "LogisticRegression(max_iter=1000)"},
+    "decision_tree": {"class": "DecisionTreeClassifier(max_depth=5, random_state=42)"},
+    "random_forest": {"class": "RandomForestClassifier(n_estimators=300, random_state=42)"}
+  },
+  "primary_selection_metric": "average_precision (positive class 'Yes'), chosen in advance on validation",
+  "threshold_policy": "0.5 for precision/recall/F1 reporting; classifier default for class predictions",
+  "artifacts": {
+    "selected_pipeline": "models/selected_pipeline.joblib",
+    "metadata": "models/metadata.json",
+    "comparison_table": "reports/model_comparison.json"
+  }
+}
