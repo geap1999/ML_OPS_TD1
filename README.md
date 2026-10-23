@@ -109,3 +109,5 @@ a loaded fitted pipeline in `telco_churn/prediction.py`, run configuration in
 
 See `evidence/tp01/handover.md` for peer-execution feedback, the one issue
 found and its resolution, and the current limitations of this handover.
+Written answers to every checkpoint question of the TP01 brief are kept in
+`evidence/tp01/questions_answers.md`.
