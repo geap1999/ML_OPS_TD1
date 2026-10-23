@@ -1,0 +1,65 @@
+{
+  "description": "Milestone 1: LogisticRegression on tenure+MonthlyCharges only, compared with a majority-class baseline, both fitted on the training split and evaluated on the validation split.",
+  "seed": 42,
+  "features": [
+    "tenure",
+    "MonthlyCharges"
+  ],
+  "split_sizes": {
+    "train": 4225,
+    "validation": 1409,
+    "test": 1409
+  },
+  "models": {
+    "logistic_two_features": {
+      "positive_class": "Yes (encoded 1)",
+      "threshold": 0.5,
+      "n_examples": 1409,
+      "n_positives": 374,
+      "accuracy": 0.7828246983676366,
+      "precision_at_threshold": 0.6428571428571429,
+      "recall_at_threshold": 0.4090909090909091,
+      "f1_at_threshold": 0.5,
+      "average_precision": 0.5985618744945995,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          950,
+          85
+        ],
+        [
+          221,
+          153
+        ]
+      ]
+    },
+    "majority_baseline": {
+      "positive_class": "Yes (encoded 1)",
+      "threshold": 0.5,
+      "n_examples": 1409,
+      "n_positives": 374,
+      "accuracy": 0.7345635202271115,
+      "precision_at_threshold": 0.0,
+      "recall_at_threshold": 0.0,
+      "f1_at_threshold": 0.0,
+      "average_precision": 0.2654364797728886,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          1035,
+          0
+        ],
+        [
+          374,
+          0
+        ]
+      ]
+    }
+  }
+}
