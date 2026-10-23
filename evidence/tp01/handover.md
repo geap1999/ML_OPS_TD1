@@ -41,16 +41,23 @@ reproduces the committed report exactly (7 043 × 21; 5 174 `No` /
 
 ## Peer review record (documentation branch)
 
-- Branch: `docs/project-onboarding` (README onboarding rewrite).
-- Review question from peer: *"`TotalCharges` is read as text because of 11
-  blank values. Should TP02 impute them inside the preprocessing pipeline, or
-  drop the 11 rows?"*
-- Response recorded here: **impute inside the pipeline, never edit the raw
-  file.** Dropping rows discards 11 real customers (~0.16%) and bakes a data
-  decision into a place (`data/raw/`) that must stay immutable; a
-  `SimpleImputer`/custom transformer inside the TP02 pipeline keeps the
-  decision versioned, configurable (`configs/`) and applied identically at
-  inference time.
+- Branch: `docs/project-onboarding` (README onboarding rewrite) → **PR #1,
+  opened, reviewed and merged**.
+- Review question from peer, posted on PR #1:
+  *"`TotalCharges` is read as text because of the 11 blank values found by
+  the inspection report. Should TP02 impute them inside the preprocessing
+  pipeline, or drop the 11 rows? I'd also like to understand why you kept
+  the raw CSV out of Git with only a hash as proof of identity."*
+- Response posted as a reply on PR #1: **impute inside the pipeline, never
+  edit the raw file.** Dropping rows discards 11 real customers (~0.16%)
+  and bakes a data decision into a place (`data/raw/`) that must stay
+  immutable; an imputer inside the TP02 pipeline keeps the decision
+  versioned, configurable (`configs/train.json`) and applied identically at
+  inference time. On the CSV: a filename does not identify content — two
+  files named `telco.csv` can differ — so the commit-pinned URL + SHA-256
+  (`references/data_source.md`) is the reproduction contract, verified in
+  the clean-room test.
+- Discussion visible at: https://github.com/geap1999/ML_OPS_TD1/pull/1
 
 ## Current limitations (what is NOT yet reproducible)
 
@@ -59,17 +66,16 @@ reproduces the committed report exactly (7 043 × 21; 5 174 `No` /
   the random seed — plus a saved fitted pipeline in `models/` with metadata
   linking it to a report, data hash and commit.
 - No automated tests yet (`tests/` planned in TP02).
-- The remote GitHub repository and the pull request are pending (see
-  "Git workflow" below).
+- The TP02 peers should each write their own individual answers
+  (`questions_answers.md` is one student's wording).
 
 ## Git workflow status
 
-- Local history: initial commit on `main`, documentation change on
-  `docs/project-onboarding` (focused README-only diff).
-- The GitHub remote was not configured during this session (repository must
-  be created under the student's own account; no credentials here). Interim
-  evidence is therefore local commits + this written peer review, per the
-  brief's fallback. To finish: `git remote add origin <url>`,
-  `git push -u origin main docs/project-onboarding`, then open the PR from
-  `docs/project-onboarding` into `main` with the review question and response
-  above in the PR description.
+- Remote: https://github.com/geap1999/ML_OPS_TD1
+- History rewritten from the initial single push into logical commits on
+  `master` (scaffold → environment → provenance → inspection → evidence).
+- `docs/project-onboarding` branched from `master`, reviewed (peer question
+  + response posted on the PR), and merged as PR #1 (merge commit
+  `ab97a58`). Final TP01 state is on `master`.
+- Remaining for TP02: keep the branch → PR → review workflow for training
+  code, configs and tests.
