@@ -1,0 +1,11 @@
+Package         Version Editable project location
+--------------- ------- --------------------------------------------------------
+numpy           2.5.4
+pandas          3.1.0
+pip             26.2.2
+python-dateutil 3.0.0
+python-dotenv   1.2.4
+ruff            0.17.2
+six             1.17.0
+telco-churn     0.0.1   /home/geap/Storage/esilv_projects/ml_ops/td1/telco-churn
+tzdata          2026.5

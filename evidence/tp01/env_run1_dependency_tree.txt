@@ -1,0 +1,9 @@
+telco-churn v0.0.1
+├── pandas v3.1.0
+│   ├── numpy v2.5.4
+│   └── python-dateutil v3.0.0
+│       ├── six v1.17.0
+│       └── tzdata v2026.5
+├── pip v26.2.2
+├── python-dotenv v1.2.4
+└── ruff v0.17.2
