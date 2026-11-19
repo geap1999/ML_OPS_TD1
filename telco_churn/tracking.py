@@ -219,7 +219,7 @@ class TrackedTrainingWorkflow:
                 "selection_metric": self.config.selection.metric,
             },
         )
-        return self._write_report(experiment.experiment_id, runs, selected, decision, version)
+        return self._write_report(context, experiment.experiment_id, runs, selected, version)
 
     def track_candidate(
         self, candidate: EstimatorConfig, context: ExperimentContext
@@ -538,33 +538,38 @@ class TrackedTrainingWorkflow:
 
     def _write_report(
         self,
+        context: ExperimentContext,
         experiment_id: str,
         runs: list[TrackedRun],
         selected: TrackedRun,
-        decision: SelectionDecision,
         version: RegisteredVersion,
     ) -> dict[str, Any]:
         """Saves the handover record and the comparison exported from the server.
 
+        The code identity is the one captured before the first run started,
+        which is also what the runs were tagged with; the report files written
+        here would otherwise make the tree look modified.
+
         Args:
+            context: Facts shared by all runs of this comparison.
             experiment_id: Experiment holding the runs.
             runs: All candidate runs.
             selected: The run whose model was chosen.
-            decision: Applied selection rule.
             version: Registered version carrying the alias.
 
         Returns:
             The JSON record that was written.
         """
         ReportWriter.write_csv(self.tracking.comparison_csv, self.export_comparison(experiment_id))
-        code = self.workflow.provenance.code()
+        decision = self.workflow.selector.select([run.result for run in runs])
         record = {
             "recorded_utc": RunProvenance.timestamp(),
             "tracking_uri": self.tracking.tracking_uri,
             "experiment": {"name": self.tracking.experiment, "id": experiment_id},
-            "git_commit": code["git_commit"],
-            "git_dirty": code["git_dirty"],
-            "data_sha256": RunProvenance.sha256_file(self.config.source_path),
+            "git_commit": context.code["git_commit"],
+            "git_dirty": context.code["git_dirty"],
+            "data_sha256": context.data.sha256,
+            "split_allocation_sha256": context.allocation_sha256,
             "evaluated_on": "validation",
             "test_set_used": False,
             "threshold": self.config.selection.threshold,
