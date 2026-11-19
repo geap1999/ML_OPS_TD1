@@ -1,0 +1,45 @@
+== BEFORE restart: 2026-11-19T11:19:39Z ==
+server PID(s): 2518 2529 
+experiment: telco-churn-tp03 (id 1); finished runs: 4
+  a58aa4f2b96c40779d9e7ab76d0af26d  baseline-most-frequent   val_average_precision=0.2654
+  adcb2f0171b74900ad878838af7122b4  logistic-C1              val_average_precision=0.6475
+  1565132fcd374ea5aa6612933f895edd  tree-depth5-leaf20       val_average_precision=0.6173
+  ad8af040b500441694fb1d4626aa1802  forest-300trees-depth8   val_average_precision=0.6642
+registry: telco-churn version 1, alias candidate -> version 1, source run ad8af040b500441694fb1d4626aa1802
+logged model: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+storage: mlflow.db 1089536 bytes; mlartifacts: 52 files, 4939082 bytes
+
+== STOP: the server process is terminated ==
+server PID(s) after stop: []
+health check while stopped: 000 (000 = connection refused)
+storage still on disk: mlflow.db 1089536 bytes; mlartifacts: 52 files
+
+== AFTER restart (same project root, same command): 2026-11-19T11:20:03Z ==
+server PID(s): 10624 10646 
+health: OK
+experiment: telco-churn-tp03 (id 1); finished runs: 4
+  a58aa4f2b96c40779d9e7ab76d0af26d  baseline-most-frequent   val_average_precision=0.2654
+  adcb2f0171b74900ad878838af7122b4  logistic-C1              val_average_precision=0.6475
+  1565132fcd374ea5aa6612933f895edd  tree-depth5-leaf20       val_average_precision=0.6173
+  ad8af040b500441694fb1d4626aa1802  forest-300trees-depth8   val_average_precision=0.6642
+registry: telco-churn version 1, alias candidate -> version 1, source run ad8af040b500441694fb1d4626aa1802
+logged model: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+
+$ uv run python scripts/verify_registered.py
+Loaded models:/telco-churn@candidate -> telco-churn version 1
+Source run: ad8af040b500441694fb1d4626aa1802; logged model: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+  [ok] labels_absent_from_inputs
+  [ok] same_customer_order
+  [ok] probabilities_within_tolerance
+  [ok] class_predictions_identical
+  [ok] learned_statistics_unchanged_by_predict
+  [ok] fit_disabled_during_inference
+Max |probability difference| = 0 (tolerance 1e-12) over 10 records
+
+$ uv run python scripts/predict_registered.py --input evidence/tp02/example_new_customers.csv
+Loaded models:/telco-churn@candidate -> telco-churn version 1
+Source run: ad8af040b500441694fb1d4626aa1802; logged model: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+customerID  churn_probability  churn_prediction
+  NEW-0001           0.698899                 1
+  NEW-0002           0.102803                 0
+  NEW-0003           0.082097                 0

@@ -99,9 +99,7 @@ def _project_relative(path: Path) -> str:
 
 def _string_columns(df: pd.DataFrame) -> list[str]:
     """String-typed columns for both pandas 2 (object) and pandas 3 (str dtype)."""
-    return [
-        name for name in df.columns if pd.api.types.is_string_dtype(df[name])
-    ]
+    return [name for name in df.columns if pd.api.types.is_string_dtype(df[name])]
 
 
 def check_empty_strings(df: pd.DataFrame) -> dict[str, int]:
@@ -130,9 +128,7 @@ def check_target(df: pd.DataFrame) -> dict:
     proportions = df[TARGET_COLUMN].value_counts(dropna=False, normalize=True)
     return {
         "counts": {str(label): int(n) for label, n in counts.items()},
-        "proportions": {
-            str(label): float(p) for label, p in proportions.items()
-        },
+        "proportions": {str(label): float(p) for label, p in proportions.items()},
     }
 
 

@@ -13,6 +13,12 @@ single customer snapshot (IBM Telco Customer Churn dataset).
   (preprocessing + classifier) is compared across three learned models and a
   baseline on one fixed split, and the selected *fitted* pipeline is saved
   with metadata so it can be reloaded for inference without retraining.
+- **TP03**: MLflow experiment tracking. Every candidate is a run with its
+  parameters, validation metrics, code and data identity, artifacts and
+  fitted pipeline; the selected pipeline is registered as `telco-churn` with
+  the alias `candidate` and reloaded in a fresh process.
+- **TP04**: a fast synthetic test suite for the input/output contract,
+  Ruff lint and format checks, coverage, and pre-commit hooks.
 
 ## Generated structure (TP01, Option A)
 
@@ -228,9 +234,10 @@ the training ones.
 
 ### Limitations
 
-- Verified on Linux (Ubuntu 24.04, Python 3.12.11, scikit-learn 1.9.1). The
-  code has nothing OS-specific, but a native Windows run was not possible on
-  the test machine because of Smart App Control (see the Windows note above).
+- Verified on Linux (Ubuntu 24.04, Python 3.12.11, scikit-learn 1.9.1) and,
+  since 2026-11-19, natively on Windows 11 with the same lockfile: the test
+  suite, the TP02 reload check and the TP03 inference scripts give the same
+  results, including with the artifacts that were produced on Linux.
 - Handling an unseen category only means the pipeline does not crash.
   Predictions for such customers are not shown to be reliable.
 - Probabilities are not calibrated: a score of 0.8 is a ranking signal, not
@@ -241,6 +248,197 @@ the training ones.
 - The test set has not been evaluated yet. Do it once, for the frozen model,
   after selection is final.
 
+## TP03: track, compare and recover the model with MLflow
+
+The modelling is unchanged from TP02: same six features, same 60/20/20
+customer allocation (seed 42), same pipeline builder, same evaluator, same
+selection rule, test set still unused. TP03 adds an MLflow record around it,
+so a colleague can find a run, see what produced it and load the selected
+pipeline without training again.
+
+Evidence, screenshots and answers: [`reports/tp03_summary.md`](reports/tp03_summary.md).
+
+### 1. Start the tracking server (terminal 1)
+
+From the project root, and keep it running:
+
+```sh
+uv run mlflow server --host 127.0.0.1 --port 5000 --backend-store-uri sqlite:///mlflow.db --artifacts-destination ./mlartifacts
+```
+
+UI: <http://127.0.0.1:5000>. The address, experiment name, registered model
+name and alias are the `tracking` section of
+[`configs/train.json`](configs/train.json). If port 5000 is taken, change it
+in the server command **and** in `tracking.tracking_uri`.
+
+### 2. Tracked training (terminal 2)
+
+```sh
+uv run python scripts/train_tracked.py
+```
+
+One MLflow run per candidate in the experiment `telco-churn-tp03`. Each run
+records, explicitly (no autologging):
+
+| Category | What is recorded |
+|---|---|
+| Parameters | `model_type`, split seed, threshold, primary metric, preprocessing settings (`prep__*`) and the classifier's **actual** hyperparameters read back from the fitted estimator (`clf__*`) |
+| Metrics | `val_average_precision`, `val_precision`, `val_recall`, `val_f1`, plus accuracy, ROC AUC, the four confusion counts and `fit_seconds` |
+| Tags | `git_commit`, `git_dirty`, `data_sha256` (original CSV), `config_sha256`, `split_allocation_sha256`, `role`, and after selection `selected` |
+| Artifacts | `evaluation/val_confusion_matrix.{png,json}` (rows = true, columns = predicted, order `[0, 1]`), `provenance.json`, `split/split_allocation.csv`, `reference/reference_{inputs,predictions}.csv` |
+| Dataset inputs | `telco_train` (context `training`) and `telco_validation` (context `validation`) |
+| Model | the complete fitted pipeline (preprocessing + classifier), logged with `mlflow.sklearn.log_model` under the name `churn_pipeline`, with an input example of the six unencoded features |
+
+After the runs, the pre-registered rule selects one candidate on validation
+average precision. Its logged model is registered as **`telco-churn`** and
+the alias **`candidate`** is pointed at the new version. The script prints
+the run ID, the logged model URI and the registered version, and writes
+`reports/tp03_runs.json` and `reports/tp03_run_comparison.csv` (exported
+from the server with `mlflow.search_runs`).
+
+Running the script again creates new runs and a new registered version, and
+moves the alias to it. Commit your changes before a run you want to keep:
+`git_dirty = True` means the recorded commit does not describe the code that
+ran.
+
+### 3. Inference in a fresh process (terminal 2, server still running)
+
+```sh
+uv run python scripts/verify_registered.py
+uv run python scripts/predict_registered.py --input evidence/tp02/example_new_customers.csv
+```
+
+Both load `models:/telco-churn@candidate` and never call `fit`.
+`verify_registered.py` disables `fit` on the loaded pipeline, predicts the
+10-customer reference batch logged by the source run and compares with the
+predictions the in-memory pipeline made before logging (tolerance `1e-12`
+on probabilities, classes must be identical); evidence goes to
+`reports/tp03_reload_check.json`. `predict_registered.py` scores a CSV with
+the same stateless input parsing as TP02; the schema and threshold come from
+the source run's `provenance.json`, not from local files.
+
+### Where tracking data live, and how to recover the selected model
+
+| Location | Holds | In Git? |
+|---|---|---|
+| `mlflow.db` (SQLite backend store) | experiments, runs, parameters, metrics, tags, dataset records, registry names, versions and aliases | no |
+| `mlartifacts/` (artifact store) | model files (`model.pkl`, `MLmodel`, environment files), confusion matrices, provenance JSON, allocation and reference CSVs | no |
+| `reports/tp03_*` | run IDs, model URI, version, alias and reload evidence of the submitted run | yes |
+
+Both stores are local to this machine and ignored by Git; ignoring is not
+deleting. Stopping the server deletes nothing: restart it from the same
+project root with the same command and the runs, the registered version and
+the alias are back. To recover the selected model, start the server and
+load `models:/telco-churn@candidate` (or the pinned version,
+`models:/telco-churn/<version>`, recorded in `reports/tp03_runs.json`).
+
+### Limitations
+
+- A run ID, a `models:/` URI or `http://127.0.0.1:5000` mean nothing on
+  another machine. A colleague needs **both** `mlflow.db` and `mlartifacts/`
+  (or access to a shared tracking server), plus this repository at the
+  recorded commit and the locked environment (`uv sync --locked`), because
+  the logged model is a pickle that imports scikit-learn.
+- The original CSV is not in MLflow. The run stores its SHA-256 and a
+  dataset digest, which identify the data but cannot recreate it; get the
+  CSV with `scripts/download_data.py`.
+- The alias is a movable pointer. For a reproducible handover, quote the
+  version number with it.
+- One split, modest configurations: the comparison is a classroom exercise,
+  not evidence of a statistically significant difference.
+
+## TP04: tests, static checks and pre-commit hooks
+
+Evidence and explanations: [`reports/tp04_summary.md`](reports/tp04_summary.md).
+
+### Setup
+
+```sh
+uv sync --locked              # installs the dev group too: pytest, pytest-cov, ruff, pre-commit
+uv run pre-commit install     # once per clone: hook installation is local, not in Git
+```
+
+### Commands, and what each one detects
+
+| Command | Detects | Does not detect |
+|---|---|---|
+| `uv run pytest -q` | Broken **behaviour**: a missing feature accepted, an unknown category rejected, invalid probabilities, a save/reload that changes predictions, a wrong selection rule | Anything no test asserts |
+| `uv run ruff check telco_churn scripts tests` | **Static** problems found without running the code: unused or undefined names, misplaced or unsorted imports, syntax errors (rules `E4`, `E7`, `E9`, `F`, `I`) | Wrong results from valid code |
+| `uv run ruff format --check telco_churn scripts tests` | **Layout** differing from the formatter's style | Any logic problem |
+| `uv run pytest --cov=telco_churn --cov-report=term-missing --cov-report=xml:coverage.xml` | Which lines and branches the tests **executed**; writes `coverage.xml` | Whether those lines were checked by an assertion |
+| `uv run pre-commit run --all-files` | Runs the hooks on every file instead of only the staged ones | It does not run pytest |
+
+To apply the automatic fixes, then review them before committing:
+
+```sh
+uv run ruff check --fix telco_churn scripts tests
+uv run ruff format telco_churn scripts tests
+git diff
+```
+
+### Input/output contract protected by the tests
+
+- The six TP02 features are required: `tenure`, `MonthlyCharges`,
+  `TotalCharges`, `Contract`, `InternetService`, `PaymentMethod`. A missing
+  one raises `KeyError` naming it. `Churn` and `customerID` are never model
+  inputs.
+- Numbers may be numeric or numeric text. Blank text is a missing value;
+  other non-numeric text raises `ValueError`.
+- A missing number is imputed with the training median and a category
+  unseen in training is encoded as all zeros
+  (`OneHotEncoder(handle_unknown="ignore")`): the batch is scored, which
+  does not make those scores accurate.
+- A non-empty batch gets one row per customer, in order: a churn
+  probability in `[0, 1]` and a class (`1` = churn, `Churn = Yes`) equal to
+  `probability >= 0.5`. `classes_` is `[0, 1]`; the churn column is looked
+  up by label, not by position.
+- A saved and reloaded pipeline gives the same predictions.
+
+### Tests
+
+| File | Data | What it protects |
+|---|---|---|
+| `tests/conftest.py` | 16 invented customers, real pipeline builder | shared fixtures |
+| `tests/test_input_contract.py` | synthetic | required features, ignored ID/target, missing values, unseen categories, malformed text |
+| `tests/test_prediction.py` | synthetic | probability contract, threshold rule, row order, no refit at inference |
+| `tests/test_persistence.py` | synthetic, `tmp_path` | joblib and `ArtifactStore` round trips |
+| `tests/test_selection.py` | hand-made results | the selection rule and its tie-break |
+| `tests/test_reliability.py` (TP02) | the real CSV; skipped if it is not downloaded | split, training-only statistics, fresh-process reload |
+
+The four synthetic files run in about one second and need no CSV, network
+or MLflow server.
+
+### Hooks
+
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml) pins `ruff-pre-commit`
+`v0.17.5` (the Ruff version in `uv.lock`) with `ruff-check --fix` before
+`ruff-format`, limited to `telco_churn/`, `scripts/` and `tests/`, and
+`pre-commit-hooks` `v6.0.0` for trailing whitespace, end of file, YAML/TOML
+syntax and large files. When a hook modifies a file the commit is refused:
+review with `git diff`, `git add` again and commit again. Do not use
+`--no-verify`.
+
+Training, pytest and the MLflow server are not hooks: they are too slow for
+every commit. Hooks are local and can be bypassed, so they do not replace
+checks on the server side (CI, next TP).
+
+> The hook remembers the Python that installed it. Install it from the
+> system you commit from: a hook installed from WSL makes `git commit` from
+> Windows fail with "`pre-commit` not found", and the reverse. Running
+> `uv run pre-commit install` again from the right system fixes it.
+
+Generated files stay out of Git: `.venv/`, `.pytest_cache/`,
+`.ruff_cache/`, `.coverage`, `coverage.xml`, `htmlcov/`.
+
+### VS Code (optional)
+
+[`.vscode.example/`](.vscode.example/) is a ready-made configuration: pytest
+in the Testing panel, Ruff on save, Run and Debug entries for every script,
+tasks for the checks above and for the MLflow server, and one
+"Launch everything" entry. Copy it to `.vscode/` (ignored by Git) and open
+the repository root; details in
+[`.vscode.example/README.md`](.vscode.example/README.md).
+
 ## Handover notes
 
 See `evidence/tp01/handover.md` for peer-execution feedback, the issues
@@ -248,3 +446,5 @@ found and their resolutions, and the current limitations of this handover.
 Written answers to every checkpoint question of the TP01 brief are kept in
 `evidence/tp01/questions_answers.md`. TP02 peer review:
 `evidence/tp02/peer_review.md`.
+TP03 and TP04 evidence: `reports/tp03_summary.md`, `reports/tp04_summary.md`,
+`evidence/tp03/` and `evidence/tp04/`.

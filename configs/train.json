@@ -30,24 +30,28 @@
   "candidates": [
     {
       "name": "majority_baseline",
+      "run_name": "baseline-most-frequent",
       "estimator": "dummy",
       "params": {"strategy": "most_frequent"},
       "complexity_rank": 0
     },
     {
       "name": "logistic_regression",
+      "run_name": "logistic-C1",
       "estimator": "logistic_regression",
       "params": {"max_iter": 1000},
       "complexity_rank": 1
     },
     {
       "name": "decision_tree",
+      "run_name": "tree-depth5-leaf20",
       "estimator": "decision_tree",
       "params": {"max_depth": 5, "min_samples_leaf": 20},
       "complexity_rank": 2
     },
     {
       "name": "random_forest",
+      "run_name": "forest-300trees-depth8",
       "estimator": "random_forest",
       "params": {"n_estimators": 300, "max_depth": 8, "min_samples_leaf": 10, "n_jobs": 1},
       "complexity_rank": 3
@@ -64,5 +68,15 @@
     "comparison_json": "reports/model_comparison.json",
     "comparison_csv": "reports/model_comparison.csv",
     "artifact_dir": "models/churn_pipeline"
+  },
+  "tracking": {
+    "tracking_uri": "http://127.0.0.1:5000",
+    "experiment": "telco-churn-tp03",
+    "model_name": "churn_pipeline",
+    "registered_model": "telco-churn",
+    "alias": "candidate",
+    "run_report": "reports/tp03_runs.json",
+    "comparison_csv": "reports/tp03_run_comparison.csv",
+    "reload_report": "reports/tp03_reload_check.json"
   }
 }

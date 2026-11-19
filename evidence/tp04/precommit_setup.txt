@@ -1,0 +1,59 @@
+$ uv run pre-commit validate-config
+exit code: 0
+
+$ uv run pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+exit code: 0
+
+$ git add .pre-commit-config.yaml tests/test_selection.py
+
+$ uv run pre-commit run --all-files
+[INFO] Initializing environment for https://github.com/astral-sh/ruff-pre-commit.
+[INFO] Initializing environment for https://github.com/pre-commit/pre-commit-hooks.
+[INFO] Installing environment for https://github.com/astral-sh/ruff-pre-commit.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Installing environment for https://github.com/pre-commit/pre-commit-hooks.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+ruff check...............................................................Passed
+ruff format..............................................................Passed
+trim trailing whitespace.................................................Failed
+- hook id: trailing-whitespace
+- exit code: 1
+- files were modified by this hook
+
+Fixing pyproject.toml
+
+fix end of files.........................................................Failed
+- hook id: end-of-file-fixer
+- exit code: 1
+- files were modified by this hook
+
+Fixing pyproject.toml
+
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check for added large files..............................................Passed
+exit code: 1
+
+$ git diff pyproject.toml   (what the whitespace hooks changed)
+--- a/pyproject.toml$
++++ b/pyproject.toml$
+-    $
++$
+-$
+
+$ git add pyproject.toml && uv run pre-commit run --all-files
+   Building telco-churn @ file://<project>
+      Built telco-churn @ file://<project>
+Uninstalled 1 package in 0.40ms
+Installed 1 package in 0.79ms
+ruff check...............................................................Passed
+ruff format..............................................................Passed
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...............................................................Passed
+check toml...............................................................Passed
+check for added large files..............................................Passed
+exit code: 0

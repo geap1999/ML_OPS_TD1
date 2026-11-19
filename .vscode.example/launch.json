@@ -1,0 +1,222 @@
+{
+    // Run and Debug view (Ctrl+Shift+D): pick a configuration, press F5.
+    // The repository root is the workspace. Every configuration uses the
+    // interpreter selected in VS Code: choose the project's .venv once with
+    // "Python: Select Interpreter" (it is created by `uv sync --locked`).
+    "version": "0.2.0",
+    "compounds": [
+        {
+            // One click: check the data, start the MLflow server, open its UI,
+            // then run the test suite and the two inference checks.
+            // It does NOT retrain: the registry (telco-churn v1 @candidate) is left as it is.
+            "name": "▶ Launch everything (server + UI + tests + inference)",
+            "configurations": [
+                "Tests: pytest (all)",
+                "TP03: verify registered model (fresh process)",
+                "TP03: predict with registered model"
+            ],
+            "preLaunchTask": "Everything: prepare (data + server + UI)",
+            "stopAll": false,
+            "presentation": {
+                "group": "0-everything",
+                "order": 1
+            }
+        }
+    ],
+    "configurations": [
+        // ------------------------------------------------------------ tests
+        {
+            "name": "Tests: pytest (all)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-q"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "1-tests", "order": 1 }
+        },
+        {
+            "name": "Tests: pytest (current file)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-v", "${file}"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "1-tests", "order": 2 }
+        },
+        {
+            "name": "Tests: coverage report",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "--cov=telco_churn",
+                "--cov-report=term-missing",
+                "--cov-report=xml:coverage.xml"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "1-tests", "order": 3 }
+        },
+        {
+            // Used by the Testing panel when you click "Debug Test".
+            "name": "Tests: debug from the Testing panel",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "purpose": ["debug-test"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "presentation": { "hidden": true }
+        },
+
+        // ------------------------------------------------------------- TP03
+        {
+            // The server as a debug session (alternative to the task).
+            // Opens the UI when the server reports it is listening.
+            "name": "TP03: MLflow tracking server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "mlflow",
+            "args": [
+                "server",
+                "--host", "127.0.0.1",
+                "--port", "5000",
+                "--backend-store-uri", "sqlite:///mlflow.db",
+                "--artifacts-destination", "./mlartifacts"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+            "justMyCode": true,
+            "presentation": { "group": "2-tp03", "order": 1 }
+        },
+        {
+            "name": "TP03: verify registered model (fresh process)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/verify_registered.py",
+            // Report written outside the repository, so the committed evidence is not modified.
+            "args": ["--report", "${workspaceFolder}/.vscode/.out/tp03_reload_check.json"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+            "preLaunchTask": "MLflow: start server",
+            "justMyCode": true,
+            "presentation": { "group": "2-tp03", "order": 2 }
+        },
+        {
+            "name": "TP03: predict with registered model",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/predict_registered.py",
+            "args": ["--input", "evidence/tp02/example_new_customers.csv"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+            "preLaunchTask": "MLflow: start server",
+            "justMyCode": true,
+            "presentation": { "group": "2-tp03", "order": 3 }
+        },
+        {
+            // CAREFUL: every run creates 4 new runs and a NEW registered version,
+            // and moves the alias "candidate" to it. reports/tp03_summary.md
+            // documents version 1; only run this if you mean to retrain.
+            "name": "TP03: tracked training (NEW runs + NEW version)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/train_tracked.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+            "preLaunchTask": "MLflow: start server",
+            "justMyCode": true,
+            "presentation": { "group": "2-tp03", "order": 4 }
+        },
+
+        // ------------------------------------------------------------- TP02
+        {
+            // Rewrites reports/model_comparison.* and models/churn_pipeline/ (tracked files).
+            "name": "TP02: train, compare, save artifact",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/train.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "3-tp02", "order": 1 }
+        },
+        {
+            "name": "TP02: verify saved artifact (fresh process)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/verify_artifact.py",
+            "args": ["--report", "${workspaceFolder}/.vscode/.out/tp02_reload_check.json"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "3-tp02", "order": 2 }
+        },
+        {
+            "name": "TP02: predict with saved artifact",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/predict.py",
+            "args": ["--input", "evidence/tp02/example_new_customers.csv"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "3-tp02", "order": 3 }
+        },
+        {
+            "name": "TP02: first model (2 features + baseline)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/first_model.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "3-tp02", "order": 4 }
+        },
+
+        // ------------------------------------------------------------- TP01
+        {
+            "name": "TP01: download data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/download_data.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "4-tp01", "order": 1 }
+        },
+        {
+            "name": "TP01: inspect data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/inspect_data.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "presentation": { "group": "4-tp01", "order": 2 }
+        },
+
+        // ---------------------------------------------------------- generic
+        {
+            "name": "Python: current file",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+            "justMyCode": true,
+            "presentation": { "group": "5-generic", "order": 1 }
+        }
+    ]
+}

@@ -47,7 +47,7 @@ class ArtifactVerifier:
             Evidence record; ``passed`` is ``True`` only if every check holds.
         """
         artifact = ArtifactStore(self.directory).load()
-        self._forbid_fit(artifact.pipeline)
+        self.forbid_fit(artifact.pipeline)
         inputs = artifact.reference_inputs()
         expected = artifact.reference_predictions()
         target = artifact.metadata["features"]["target_column"]
@@ -84,7 +84,7 @@ class ArtifactVerifier:
         }
 
     @staticmethod
-    def _forbid_fit(pipeline: Any) -> None:
+    def forbid_fit(pipeline: Any) -> None:
         """Replaces every ``fit``-like method with one that raises.
 
         Args:

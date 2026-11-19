@@ -348,11 +348,8 @@ class TrainingWorkflow:
         Returns:
             Summary with the comparison rows, the decision and output paths.
         """
-        data = TrainingData.load(self.config)
-        splits = DatasetSplitter(
-            self.config.split, self.schema.id_column, self.schema.target_column
-        ).split(data.records)
-        prepared = PreparedSplits.prepare(splits, self.schema)
+        data, prepared = self.load_partitions()
+        splits = prepared.raw
 
         results = [self.fit_candidate(candidate, prepared) for candidate in self.config.candidates]
         decision = self.selector.select(results)
@@ -365,6 +362,18 @@ class TrainingWorkflow:
             "decision": decision,
             "metadata_path": metadata_path,
         }
+
+    def load_partitions(self) -> tuple[TrainingData, PreparedSplits]:
+        """Loads the verified snapshot and allocates customers with the configured seed.
+
+        Returns:
+            The raw snapshot and its parsed train, validation and test partitions.
+        """
+        data = TrainingData.load(self.config)
+        splits = DatasetSplitter(
+            self.config.split, self.schema.id_column, self.schema.target_column
+        ).split(data.records)
+        return data, PreparedSplits.prepare(splits, self.schema)
 
     def fit_candidate(
         self, candidate: EstimatorConfig, prepared: PreparedSplits

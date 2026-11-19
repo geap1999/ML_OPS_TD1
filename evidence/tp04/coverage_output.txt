@@ -1,0 +1,125 @@
+$ uv run pytest --cov=telco_churn --cov-report=term-missing --cov-report=xml:coverage.xml
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-9.1.1, pluggy-1.7.0
+rootdir: <project>
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0, platformdirs-4.14.7, anyio-4.16.0
+collected 40 items
+
+tests/test_input_contract.py ..............                              [ 35%]
+tests/test_persistence.py ....                                           [ 45%]
+tests/test_prediction.py ......                                          [ 60%]
+tests/test_reliability.py ................                               [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.11-final-0 _______________
+
+Name                          Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------
+telco_churn/__init__.py           0      0      0      0   100%
+telco_churn/artifacts.py         54      1      6      1    97%   154
+telco_churn/config.py            86      3      2      1    95%   37, 66, 151
+telco_churn/dataset.py           69     39     10      1    39%   38, 53-75, 81, 94-97, 102, 112-116, 121-122, 127-129, 137, 147-149, 181-189
+telco_churn/evaluation.py        40      3      4      1    86%   102-104
+telco_churn/features.py          67      5     18      1    91%   58, 104-107
+telco_churn/pipeline.py          61      2     10      5    90%   58, 63->65, 104, 137->139, 229->238
+telco_churn/prediction.py        30      1      2      0    97%   49
+telco_churn/provenance.py        34      2      0      0    94%   104-105
+telco_churn/registry.py          88     88      6      0     0%   1-282
+telco_churn/reporting.py         42      3     12      3    89%   54, 56, 61
+telco_churn/splitting.py         38      2      6      2    91%   58, 111
+telco_churn/tracking.py         153    153     10      0     0%   1-594
+telco_churn/training.py         145     21     10      3    83%   66, 214, 233, 263, 271-307
+telco_churn/verification.py      34     34      6      0     0%   1-101
+-------------------------------------------------------------------------
+TOTAL                           941    357    102     18    61%
+Coverage XML written to file coverage.xml
+============================== 40 passed in 9.03s ==============================
+exit code: 0
+
+### After adding tests/test_selection.py (the proposed check, implemented)
+
+$ uv run pytest --cov=telco_churn --cov-report=term-missing --cov-report=xml:coverage.xml
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-9.1.1, pluggy-1.7.0
+rootdir: <project>
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0, platformdirs-4.14.7, anyio-4.16.0
+collected 45 items
+
+tests/test_input_contract.py ..............                              [ 31%]
+tests/test_persistence.py ....                                           [ 40%]
+tests/test_prediction.py ......                                          [ 53%]
+tests/test_reliability.py ................                               [ 88%]
+tests/test_selection.py .....                                            [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.11-final-0 _______________
+
+Name                          Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------
+telco_churn/__init__.py           0      0      0      0   100%
+telco_churn/artifacts.py         54      1      6      1    97%   154
+telco_churn/config.py            86      3      2      1    95%   37, 66, 151
+telco_churn/dataset.py           69     39     10      1    39%   38, 53-75, 81, 94-97, 102, 112-116, 121-122, 127-129, 137, 147-149, 181-189
+telco_churn/evaluation.py        40      3      4      1    86%   102-104
+telco_churn/features.py          67      5     18      1    91%   58, 104-107
+telco_churn/pipeline.py          61      2     10      5    90%   58, 63->65, 104, 137->139, 229->238
+telco_churn/prediction.py        30      1      2      0    97%   49
+telco_churn/provenance.py        34      2      0      0    94%   104-105
+telco_churn/registry.py          88     88      6      0     0%   1-282
+telco_churn/reporting.py         42      3     12      3    89%   54, 56, 61
+telco_churn/splitting.py         38      2      6      2    91%   58, 111
+telco_churn/tracking.py         153    153     10      0     0%   1-594
+telco_churn/training.py         145     19     10      1    86%   66, 263, 271-307
+telco_churn/verification.py      34     34      6      0     0%   1-101
+-------------------------------------------------------------------------
+TOTAL                           941    355    102     16    61%
+Coverage XML written to file coverage.xml
+============================== 45 passed in 8.85s ==============================
+exit code: 0
+
+### Final state (46 tests, after the blocked-commit demonstration added one)
+
+$ uv run pytest --cov=telco_churn --cov-report=term-missing --cov-report=xml:coverage.xml
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-9.1.1, pluggy-1.7.0
+rootdir: <project>
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0, platformdirs-4.14.7, anyio-4.16.0
+collected 46 items
+
+tests/test_input_contract.py ..............                              [ 30%]
+tests/test_persistence.py ....                                           [ 39%]
+tests/test_prediction.py ......                                          [ 52%]
+tests/test_reliability.py ................                               [ 86%]
+tests/test_selection.py ......                                           [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.11-final-0 _______________
+
+Name                          Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------
+telco_churn/__init__.py           0      0      0      0   100%
+telco_churn/artifacts.py         54      1      6      1    97%   154
+telco_churn/config.py            86      3      2      1    95%   37, 66, 151
+telco_churn/dataset.py           69     39     10      1    39%   38, 53-75, 81, 94-97, 102, 112-116, 121-122, 127-129, 137, 147-149, 181-189
+telco_churn/evaluation.py        40      3      4      1    86%   102-104
+telco_churn/features.py          67      5     18      1    91%   58, 104-107
+telco_churn/pipeline.py          61      2     10      5    90%   58, 63->65, 104, 137->139, 229->238
+telco_churn/prediction.py        30      1      2      0    97%   49
+telco_churn/provenance.py        34      2      0      0    94%   104-105
+telco_churn/registry.py          88     88      6      0     0%   1-282
+telco_churn/reporting.py         42      3     12      3    89%   54, 56, 61
+telco_churn/splitting.py         38      2      6      2    91%   58, 111
+telco_churn/tracking.py         153    153     10      0     0%   1-594
+telco_churn/training.py         145     19     10      1    86%   66, 263, 271-307
+telco_churn/verification.py      34     34      6      0     0%   1-101
+-------------------------------------------------------------------------
+TOTAL                           941    355    102     16    61%
+Coverage XML written to file coverage.xml
+============================== 46 passed in 9.16s ==============================
+exit code: 0

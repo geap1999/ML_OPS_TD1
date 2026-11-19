@@ -1,0 +1,89 @@
+### A commit blocked by the hooks, then accepted after review
+
+A new test was added to tests/test_selection.py with careless formatting
+and an unused import. Its behaviour is correct; only its style is wrong.
+
+$ git diff --stat
+ tests/test_selection.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+$ uv run pytest -q tests/test_selection.py
+......                                                                   [100%]
+6 passed in 0.11s
+
+$ git add tests/test_selection.py
+$ git commit -m "Test that tied candidates are listed simplest first"
+ruff check...............................................................Failed
+- hook id: ruff-check
+- files were modified by this hook
+
+Found 1 error (1 fixed, 0 remaining).
+
+ruff format..............................................................Failed
+- hook id: ruff-format
+- files were modified by this hook
+
+1 file reformatted
+
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check for added large files..............................................Passed
+exit code: 1   <- commit refused
+
+$ git log --oneline -1   (HEAD has not moved)
+1d4f4b8 Add pre-commit hooks and selection-rule tests
+
+$ git status --short   (staged version = mine, working tree = fixed by the hooks)
+MM tests/test_selection.py
+
+$ git diff   (review of what the hooks changed)
+diff --git a/tests/test_selection.py b/tests/test_selection.py
+index e7eb75a..56ed119 100644
+--- a/tests/test_selection.py
++++ b/tests/test_selection.py
+@@ -1,5 +1,4 @@
+ from dataclasses import replace
+-import os
+ 
+ import pytest
+ 
+@@ -101,9 +100,11 @@ class TestSelectionRule:
+         tree = replace(tree, validation=replace(tree.validation, recall=0.99, f1=0.99))
+         assert selector.select([tree, forest]).selected == "forest"
+ 
+-    def test_tied_candidates_are_listed_simplest_first( self,selector ):
++    def test_tied_candidates_are_listed_simplest_first(self, selector):
+         """Candidates inside the tolerance are reported in order of complexity."""
+-        results=[self.candidate('forest','random_forest',rank=3,score=0.660),
+-                 self.candidate('tree',  'decision_tree',rank=2,score=0.655),
+-                 self.candidate('logistic','logistic_regression',rank=1,score=0.652)]
+-        assert selector.select( results ).tied==['logistic','tree','forest']
++        results = [
++            self.candidate("forest", "random_forest", rank=3, score=0.660),
++            self.candidate("tree", "decision_tree", rank=2, score=0.655),
++            self.candidate("logistic", "logistic_regression", rank=1, score=0.652),
++        ]
++        assert selector.select(results).tied == ["logistic", "tree", "forest"]
+
+$ uv run pytest -q tests/test_selection.py   (behaviour unchanged by the fixes)
+......                                                                   [100%]
+6 passed in 0.14s
+
+$ git add tests/test_selection.py
+$ git commit -m "Test that tied candidates are listed simplest first"   (retry, no --no-verify)
+ruff check...............................................................Passed
+ruff format..............................................................Passed
+trim trailing whitespace.................................................Passed
+fix end of files.........................................................Passed
+check yaml...........................................(no files to check)Skipped
+check toml...........................................(no files to check)Skipped
+check for added large files..............................................Passed
+[feat/tp04-tests-quality 1964b3b] Test that tied candidates are listed simplest first
+ 1 file changed, 9 insertions(+)
+exit code: 0   <- commit accepted
+
+$ git log --oneline -2
+1964b3b Test that tied candidates are listed simplest first
+1d4f4b8 Add pre-commit hooks and selection-rule tests

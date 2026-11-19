@@ -1,0 +1,19 @@
+$ uv run python scripts/verify_registered.py
+Loaded models:/telco-churn@candidate -> telco-churn version 1
+Source run: ad8af040b500441694fb1d4626aa1802; logged model: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+  [ok] labels_absent_from_inputs
+  [ok] same_customer_order
+  [ok] probabilities_within_tolerance
+  [ok] class_predictions_identical
+  [ok] learned_statistics_unchanged_by_predict
+  [ok] fit_disabled_during_inference
+Max |probability difference| = 0 (tolerance 1e-12) over 10 records
+Evidence written to: reports/tp03_reload_check.json
+
+$ uv run python scripts/predict_registered.py --input evidence/tp02/example_new_customers.csv
+Loaded models:/telco-churn@candidate -> telco-churn version 1
+Source run: ad8af040b500441694fb1d4626aa1802; logged model: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+customerID  churn_probability  churn_prediction
+  NEW-0001           0.698899                 1
+  NEW-0002           0.102803                 0
+  NEW-0003           0.082097                 0

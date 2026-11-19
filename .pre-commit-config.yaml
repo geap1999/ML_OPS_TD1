@@ -1,0 +1,32 @@
+# Lightweight checks that run before a commit is accepted.
+#
+# One-time setup after cloning (hook installation is local, it is not in Git):
+#   uv run pre-commit install
+#
+# The Ruff hooks are pinned to the same version as the `ruff` in uv.lock
+# (0.17.5), so the command line and the hooks agree. They are limited to the
+# project's own Python code; .venv/, mlflow.db and mlartifacts/ are never
+# scanned. pytest, training and the MLflow server are deliberately not hooks.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        types_or: [python, pyi]
+        files: ^(telco_churn|scripts|tests)/
+      - id: ruff-format
+        types_or: [python, pyi]
+        files: ^(telco_churn|scripts|tests)/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        files: ^(telco_churn|scripts|tests|configs)/|^(README\.md|pyproject\.toml|\.pre-commit-config\.yaml)$
+      - id: end-of-file-fixer
+        files: ^(telco_churn|scripts|tests|configs)/|^(README\.md|pyproject\.toml|\.pre-commit-config\.yaml)$
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=6000]
