@@ -1,0 +1,87 @@
+{
+  "recorded_utc": "2026-11-19T11:13:12.837969+00:00",
+  "tracking_uri": "http://127.0.0.1:5000",
+  "experiment": {
+    "name": "telco-churn-tp03",
+    "id": "1"
+  },
+  "git_commit": "8568aa4a0e9d5a4d6fcfdaaae61a437bd4688d4b",
+  "git_dirty": false,
+  "data_sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+  "split_allocation_sha256": "a3f2c8e43099a641e2513a50d8f75e86e0a7bfdcd36f9f1347b5a4e05917728d",
+  "evaluated_on": "validation",
+  "test_set_used": false,
+  "threshold": 0.5,
+  "selection": {
+    "metric": "average_precision",
+    "tolerance": 0.01,
+    "rule": "Highest validation average precision among learned candidates; any candidate within `tolerance` of the best is a tie, and ties go to the lowest complexity_rank (the simpler model).",
+    "decision": {
+      "selected": "random_forest",
+      "best_by_metric": "random_forest",
+      "tied": [
+        "random_forest"
+      ],
+      "rationale": "random_forest has the highest validation average_precision (0.6642) and no simpler candidate is within 0.01."
+    }
+  },
+  "runs": [
+    {
+      "run_id": "a58aa4f2b96c40779d9e7ab76d0af26d",
+      "run_name": "baseline-most-frequent",
+      "candidate": "majority_baseline",
+      "is_baseline": true,
+      "model_uri": "models:/m-b66635c9dce84d19b08f9ed6dfab3b54",
+      "val_average_precision": 0.2654364797728886,
+      "val_precision": 0.0,
+      "val_recall": 0.0,
+      "val_f1": 0.0,
+      "fit_seconds": 0.0131
+    },
+    {
+      "run_id": "adcb2f0171b74900ad878838af7122b4",
+      "run_name": "logistic-C1",
+      "candidate": "logistic_regression",
+      "is_baseline": false,
+      "model_uri": "models:/m-f14c21076aa244438b0c15bc4009063f",
+      "val_average_precision": 0.6474664703085159,
+      "val_precision": 0.6644295302013423,
+      "val_recall": 0.5294117647058824,
+      "val_f1": 0.5892857142857143,
+      "fit_seconds": 0.024
+    },
+    {
+      "run_id": "1565132fcd374ea5aa6612933f895edd",
+      "run_name": "tree-depth5-leaf20",
+      "candidate": "decision_tree",
+      "is_baseline": false,
+      "model_uri": "models:/m-e44e91fd8d2f473aa55a938b31525140",
+      "val_average_precision": 0.6173000162034762,
+      "val_precision": 0.635593220338983,
+      "val_recall": 0.6016042780748663,
+      "val_f1": 0.6181318681318682,
+      "fit_seconds": 0.0132
+    },
+    {
+      "run_id": "ad8af040b500441694fb1d4626aa1802",
+      "run_name": "forest-300trees-depth8",
+      "candidate": "random_forest",
+      "is_baseline": false,
+      "model_uri": "models:/m-ec6ef3a1620249f4a3af72ba1ed40515",
+      "val_average_precision": 0.6641660575416509,
+      "val_precision": 0.6534296028880866,
+      "val_recall": 0.4839572192513369,
+      "val_f1": 0.5560675883256528,
+      "fit_seconds": 0.5086
+    }
+  ],
+  "selected": {
+    "run_id": "ad8af040b500441694fb1d4626aa1802",
+    "run_name": "forest-300trees-depth8",
+    "model_uri": "models:/m-ec6ef3a1620249f4a3af72ba1ed40515",
+    "registered_model": "telco-churn",
+    "version": "1",
+    "alias": "candidate",
+    "alias_uri": "models:/telco-churn@candidate"
+  }
+}

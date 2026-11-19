@@ -1,0 +1,24 @@
+{
+  "checked_utc": "2026-11-19T11:13:16.589808+00:00",
+  "tracking_uri": "http://127.0.0.1:5000",
+  "requested_uri": "models:/telco-churn@candidate",
+  "registered_model": "telco-churn",
+  "version": "1",
+  "alias": "candidate",
+  "source_run_id": "ad8af040b500441694fb1d4626aa1802",
+  "logged_model_uri": "models:/m-ec6ef3a1620249f4a3af72ba1ed40515",
+  "git_commit": "8568aa4a0e9d5a4d6fcfdaaae61a437bd4688d4b",
+  "data_sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+  "n_records": 10,
+  "tolerance_abs_probability": 1e-12,
+  "max_abs_probability_difference": 0.0,
+  "checks": {
+    "labels_absent_from_inputs": true,
+    "same_customer_order": true,
+    "probabilities_within_tolerance": true,
+    "class_predictions_identical": true,
+    "learned_statistics_unchanged_by_predict": true,
+    "fit_disabled_during_inference": true
+  },
+  "passed": true
+}

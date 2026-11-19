@@ -1,0 +1,164 @@
+{
+  "candidate": {
+    "name": "random_forest",
+    "run_name": "forest-300trees-depth8",
+    "estimator": "RandomForestClassifier",
+    "params": {
+      "bootstrap": true,
+      "ccp_alpha": 0.0,
+      "class_weight": null,
+      "criterion": "gini",
+      "max_depth": 8,
+      "max_features": "sqrt",
+      "max_leaf_nodes": null,
+      "max_samples": null,
+      "min_impurity_decrease": 0.0,
+      "min_samples_leaf": 10,
+      "min_samples_split": 2,
+      "min_weight_fraction_leaf": 0.0,
+      "monotonic_cst": null,
+      "n_estimators": 300,
+      "n_jobs": 1,
+      "oob_score": false,
+      "random_state": 42,
+      "verbose": 0,
+      "warm_start": false
+    },
+    "is_baseline": false
+  },
+  "data": {
+    "source_path": "data/raw/telco.csv",
+    "sha256": "16320c9c1ec72448db59aa0a26a0b95401046bef5d02fd3aeb906448e3055e91",
+    "n_records": 7043,
+    "note": "The hash identifies the CSV bytes; it does not store them."
+  },
+  "split": {
+    "seed": 42,
+    "fractions": {
+      "seed": 42,
+      "train_fraction": 0.6,
+      "validation_fraction": 0.2,
+      "test_fraction": 0.2
+    },
+    "sizes": {
+      "train": 4225,
+      "validation": 1409,
+      "test": 1409
+    },
+    "stratified_on": "Churn",
+    "allocation_artifact": "split/split_allocation.csv",
+    "allocation_sha256": "a3f2c8e43099a641e2513a50d8f75e86e0a7bfdcd36f9f1347b5a4e05917728d",
+    "test_set_used_for_selection": false
+  },
+  "features": {
+    "id_column": "customerID",
+    "target_column": "Churn",
+    "positive_class": {
+      "label": "Yes",
+      "encoded_as": 1
+    },
+    "negative_class": {
+      "label": "No",
+      "encoded_as": 0
+    },
+    "numeric": [
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges"
+    ],
+    "categorical": [
+      "Contract",
+      "InternetService",
+      "PaymentMethod"
+    ],
+    "input_contract": {
+      "numeric": "float64; blank text -> NaN (imputed); other non-numeric text -> error",
+      "categorical": "string; blank -> NaN (imputed); unseen category -> all-zero one-hot (ignored)",
+      "missing_column": "KeyError"
+    }
+  },
+  "preprocessing": {
+    "num": {
+      "columns": [
+        "tenure",
+        "MonthlyCharges",
+        "TotalCharges"
+      ],
+      "imputer": "SimpleImputer(strategy='median')",
+      "scaler": "StandardScaler"
+    },
+    "cat": {
+      "columns": [
+        "Contract",
+        "InternetService",
+        "PaymentMethod"
+      ],
+      "imputer": "SimpleImputer(strategy='most_frequent')",
+      "encoder": "OneHotEncoder(handle_unknown='ignore', sparse_output=False)"
+    },
+    "remainder": "drop",
+    "fitted_on": "training split only"
+  },
+  "evaluation": {
+    "evaluated_on": "validation",
+    "primary_metric": "average_precision",
+    "threshold": 0.5,
+    "selection_rule": "Highest validation average precision among learned candidates; any candidate within `tolerance` of the best is a tie, and ties go to the lowest complexity_rank (the simpler model).",
+    "metric_definitions": {
+      "positive_class": "Churn = Yes, encoded as 1",
+      "average_precision": "sklearn average_precision_score on positive-class probabilities",
+      "roc_auc": "sklearn roc_auc_score on positive-class probabilities",
+      "accuracy": "share of correct class predictions at the threshold",
+      "precision": "TP / (TP + FP) at the threshold (0 if no positive prediction)",
+      "recall": "TP / (TP + FN) at the threshold",
+      "f1": "harmonic mean of precision and recall at the threshold",
+      "threshold_rule": "predict churn when positive-class probability >= threshold",
+      "fit_seconds": "wall-clock time of one pipeline.fit on this machine; descriptive only"
+    },
+    "confusion_matrix": {
+      "labels": [
+        0,
+        1
+      ],
+      "orientation": "rows = true label, columns = predicted label"
+    }
+  },
+  "config": {
+    "path": "configs/train.json",
+    "sha256": "1c959bd7397362b787696541f7cb036e34013a642f092b6cd669f40fe0fd9bee"
+  },
+  "code": {
+    "git_commit": "8568aa4a0e9d5a4d6fcfdaaae61a437bd4688d4b",
+    "git_dirty": false,
+    "source_sha256": {
+      "telco_churn/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "telco_churn/artifacts.py": "64d3394813ca9e3844273e1752125241d234dc9b1b80d237ed9248c505ad0f90",
+      "telco_churn/config.py": "f7543a6e44c94ca05e69b88e953d99ce6ef8565da3311b01c02a32b7d8c9d2af",
+      "telco_churn/dataset.py": "bc7aa3a05f8ec73806cf9753c53ed43772332369d303078893fc734ce4580f2b",
+      "telco_churn/evaluation.py": "804c4dbe729465278d4b4c907ad8b698233879d07a66a38229590a97571b3924",
+      "telco_churn/features.py": "c8798f8540749aedb2ee9a16ff8249bf8eb245317ec34a7b037c753e46147a22",
+      "telco_churn/pipeline.py": "bdf42d98b1dc5f4491b6eab7210ba09ce29fba39772666a2ec8d2f33e4061b96",
+      "telco_churn/prediction.py": "f8b96e844a3f6d588350cf658192bc40582ecc03af01f2259e7c0c87991f01e4",
+      "telco_churn/provenance.py": "1dbe394672c26ea24051df9d68a874f1cd147c05b740f296a0c6eac65edf274f",
+      "telco_churn/registry.py": "119158118a906041b3e0e12e3082e90f93241cade5930d690271fb709d7e9993",
+      "telco_churn/reporting.py": "b483fdea39b046295542364254d0f4bcd36a51c11d0180220ce76b42399f39ca",
+      "telco_churn/splitting.py": "69c94ec6347e3f570e81a303c73292b0e2a0010d0259bf0597d83d16b29a2caa",
+      "telco_churn/tracking.py": "3e0c5ad8125464a0ba2ce7aae1e96bd4814bf015655093f21cc590683f757286",
+      "telco_churn/training.py": "0911279263dbd6c3df0885570cf3b6274d4e8c4aea1e6f1c3ab25ae1624ee36d",
+      "telco_churn/verification.py": "cfb07189db05758c4c3731b26b1de42f7f3a4e8c4601a6e97771a2be2b03155c"
+    }
+  },
+  "environment": {
+    "python": "3.12.11 (main, Oct  7 2025, 15:34:39) [Clang 20.1.4 ]",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "packages": {
+      "telco_churn": "0.0.1",
+      "pandas": "3.1.0",
+      "numpy": "2.5.4",
+      "scikit-learn": "1.9.1",
+      "scipy": "1.18.1",
+      "joblib": "1.6.0",
+      "mlflow": "3.18.0"
+    }
+  }
+}

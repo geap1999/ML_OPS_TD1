@@ -1,0 +1,21 @@
+$ uv run python scripts/train_tracked.py
+Successfully registered model 'telco-churn'.
+Created version '1' of model 'telco-churn'.
+🏃 View run baseline-most-frequent at: http://127.0.0.1:5000/#/experiments/1/runs/a58aa4f2b96c40779d9e7ab76d0af26d
+🧪 View experiment at: http://127.0.0.1:5000/#/experiments/1
+🏃 View run logistic-C1 at: http://127.0.0.1:5000/#/experiments/1/runs/adcb2f0171b74900ad878838af7122b4
+🧪 View experiment at: http://127.0.0.1:5000/#/experiments/1
+🏃 View run tree-depth5-leaf20 at: http://127.0.0.1:5000/#/experiments/1/runs/1565132fcd374ea5aa6612933f895edd
+🧪 View experiment at: http://127.0.0.1:5000/#/experiments/1
+🏃 View run forest-300trees-depth8 at: http://127.0.0.1:5000/#/experiments/1/runs/ad8af040b500441694fb1d4626aa1802
+🧪 View experiment at: http://127.0.0.1:5000/#/experiments/1
+Experiment: telco-churn-tp03 (id 1)
+Git commit: 8568aa4a0e9d5a4d6fcfdaaae61a437bd4688d4b (uncommitted changes: False)
+  baseline-most-frequent   run a58aa4f2b96c40779d9e7ab76d0af26d AP=0.2654 P=0.0000 R=0.0000 F1=0.0000
+  logistic-C1              run adcb2f0171b74900ad878838af7122b4 AP=0.6475 P=0.6644 R=0.5294 F1=0.5893
+  tree-depth5-leaf20       run 1565132fcd374ea5aa6612933f895edd AP=0.6173 P=0.6356 R=0.6016 F1=0.6181
+  forest-300trees-depth8   run ad8af040b500441694fb1d4626aa1802 AP=0.6642 P=0.6534 R=0.4840 F1=0.5561
+Selected: forest-300trees-depth8. random_forest has the highest validation average_precision (0.6642) and no simpler candidate is within 0.01.
+Run ID: ad8af040b500441694fb1d4626aa1802
+Model URI: models:/m-ec6ef3a1620249f4a3af72ba1ed40515
+Registered: telco-churn version 1, alias 'candidate' (models:/telco-churn@candidate)
