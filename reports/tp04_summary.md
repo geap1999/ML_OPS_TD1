@@ -313,9 +313,10 @@ dependency and secret scanning (TP05), and human review.
 
 ## Limits of this submission
 
-- Run on Linux under WSL only; on this Windows machine Smart App Control
-  blocks the uv environment, so the hook was installed from WSL and commits
-  are made there.
+- The logs in `evidence/tp04/` were produced on Linux under WSL. Afterwards
+  I reran the suite (46 passed), both Ruff commands and
+  `pre-commit run --all-files` natively on Windows with the same lockfile,
+  all passing; the hook is now installed from Windows.
 - The synthetic fixture checks the contract, not model quality: no test
   asserts an accuracy or AP value on 16 invented rows.
 - `tracking.py` and `registry.py` have no automated tests; they are

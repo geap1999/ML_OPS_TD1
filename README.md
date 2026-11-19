@@ -234,9 +234,10 @@ the training ones.
 
 ### Limitations
 
-- Verified on Linux (Ubuntu 24.04, Python 3.12.11, scikit-learn 1.9.1). The
-  code has nothing OS-specific, but a native Windows run was not possible on
-  the test machine because of Smart App Control (see the Windows note above).
+- Verified on Linux (Ubuntu 24.04, Python 3.12.11, scikit-learn 1.9.1) and,
+  since 2026-11-19, natively on Windows 11 with the same lockfile: the test
+  suite, the TP02 reload check and the TP03 inference scripts give the same
+  results, including with the artifacts that were produced on Linux.
 - Handling an unseen category only means the pipeline does not crash.
   Predictions for such customers are not shown to be reliable.
 - Probabilities are not calibrated: a score of 0.8 is a ranking signal, not
@@ -421,10 +422,10 @@ Training, pytest and the MLflow server are not hooks: they are too slow for
 every commit. Hooks are local and can be bypassed, so they do not replace
 checks on the server side (CI, next TP).
 
-> On a Windows machine where Smart App Control blocks the uv environment
-> (see the note in Quick start), install and run the hooks from WSL. A hook
-> installed from WSL makes `git commit` from Windows fail with
-> "`pre-commit` not found"; commit from WSL on that machine.
+> The hook remembers the Python that installed it. Install it from the
+> system you commit from: a hook installed from WSL makes `git commit` from
+> Windows fail with "`pre-commit` not found", and the reverse. Running
+> `uv run pre-commit install` again from the right system fixes it.
 
 Generated files stay out of Git: `.venv/`, `.pytest_cache/`,
 `.ruff_cache/`, `.coverage`, `coverage.xml`, `htmlcov/`.
