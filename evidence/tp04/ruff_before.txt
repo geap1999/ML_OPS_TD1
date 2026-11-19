@@ -1,0 +1,54 @@
+$ uv run ruff check telco_churn scripts tests
+All checks passed!
+exit code: 0
+
+$ uv run ruff format --check telco_churn scripts tests
+unformatted: File would be reformatted
+   --> telco_churn/dataset.py:102:13
+    |
+101 |     """String-typed columns for both pandas 2 (object) and pandas 3 (str dtype)."""
+    -     return [
+    -         name for name in df.columns if pd.api.types.is_string_dtype(df[name])
+    -     ]
+102 +     return [name for name in df.columns if pd.api.types.is_string_dtype(df[name])]
+103 |
+--------------------------------------------------------------------------------
+130 |         "counts": {str(label): int(n) for label, n in counts.items()},
+    -         "proportions": {
+    -             str(label): float(p) for label, p in proportions.items()
+    -         },
+131 +         "proportions": {str(label): float(p) for label, p in proportions.items()},
+132 |     }
+    |
+
+1 file would be reformatted, 25 files already formatted
+exit code: 1
+
+$ uv run ruff format --diff telco_churn scripts tests
+--- telco_churn/dataset.py
++++ telco_churn/dataset.py
+@@ -99,9 +99,7 @@
+ 
+ def _string_columns(df: pd.DataFrame) -> list[str]:
+     """String-typed columns for both pandas 2 (object) and pandas 3 (str dtype)."""
+-    return [
+-        name for name in df.columns if pd.api.types.is_string_dtype(df[name])
+-    ]
++    return [name for name in df.columns if pd.api.types.is_string_dtype(df[name])]
+ 
+ 
+ def check_empty_strings(df: pd.DataFrame) -> dict[str, int]:
+@@ -130,9 +128,7 @@
+     proportions = df[TARGET_COLUMN].value_counts(dropna=False, normalize=True)
+     return {
+         "counts": {str(label): int(n) for label, n in counts.items()},
+-        "proportions": {
+-            str(label): float(p) for label, p in proportions.items()
+-        },
++        "proportions": {str(label): float(p) for label, p in proportions.items()},
+     }
+ 
+ 
+
+1 file would be reformatted, 25 files already formatted
+exit code: 1

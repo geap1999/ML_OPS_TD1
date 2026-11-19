@@ -1,0 +1,8 @@
+$ uv run pytest --version
+pytest 9.1.1
+$ uv run ruff --version
+ruff 0.17.5
+$ uv run pre-commit --version
+pre-commit 4.7.0
+$ uv run python -c "import pytest_cov; print('pytest-cov', pytest_cov.__version__)"
+pytest-cov 7.1.0

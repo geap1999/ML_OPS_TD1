@@ -17,6 +17,8 @@ single customer snapshot (IBM Telco Customer Churn dataset).
   parameters, validation metrics, code and data identity, artifacts and
   fitted pipeline; the selected pipeline is registered as `telco-churn` with
   the alias `candidate` and reloaded in a fresh process.
+- **TP04**: a fast synthetic test suite for the input/output contract,
+  Ruff lint and format checks, coverage, and pre-commit hooks.
 
 ## Generated structure (TP01, Option A)
 
@@ -344,6 +346,89 @@ load `models:/telco-churn@candidate` (or the pinned version,
 - One split, modest configurations: the comparison is a classroom exercise,
   not evidence of a statistically significant difference.
 
+## TP04: tests, static checks and pre-commit hooks
+
+Evidence and explanations: [`reports/tp04_summary.md`](reports/tp04_summary.md).
+
+### Setup
+
+```sh
+uv sync --locked              # installs the dev group too: pytest, pytest-cov, ruff, pre-commit
+uv run pre-commit install     # once per clone: hook installation is local, not in Git
+```
+
+### Commands, and what each one detects
+
+| Command | Detects | Does not detect |
+|---|---|---|
+| `uv run pytest -q` | Broken **behaviour**: a missing feature accepted, an unknown category rejected, invalid probabilities, a save/reload that changes predictions, a wrong selection rule | Anything no test asserts |
+| `uv run ruff check telco_churn scripts tests` | **Static** problems found without running the code: unused or undefined names, misplaced or unsorted imports, syntax errors (rules `E4`, `E7`, `E9`, `F`, `I`) | Wrong results from valid code |
+| `uv run ruff format --check telco_churn scripts tests` | **Layout** differing from the formatter's style | Any logic problem |
+| `uv run pytest --cov=telco_churn --cov-report=term-missing --cov-report=xml:coverage.xml` | Which lines and branches the tests **executed**; writes `coverage.xml` | Whether those lines were checked by an assertion |
+| `uv run pre-commit run --all-files` | Runs the hooks on every file instead of only the staged ones | It does not run pytest |
+
+To apply the automatic fixes, then review them before committing:
+
+```sh
+uv run ruff check --fix telco_churn scripts tests
+uv run ruff format telco_churn scripts tests
+git diff
+```
+
+### Input/output contract protected by the tests
+
+- The six TP02 features are required: `tenure`, `MonthlyCharges`,
+  `TotalCharges`, `Contract`, `InternetService`, `PaymentMethod`. A missing
+  one raises `KeyError` naming it. `Churn` and `customerID` are never model
+  inputs.
+- Numbers may be numeric or numeric text. Blank text is a missing value;
+  other non-numeric text raises `ValueError`.
+- A missing number is imputed with the training median and a category
+  unseen in training is encoded as all zeros
+  (`OneHotEncoder(handle_unknown="ignore")`): the batch is scored, which
+  does not make those scores accurate.
+- A non-empty batch gets one row per customer, in order: a churn
+  probability in `[0, 1]` and a class (`1` = churn, `Churn = Yes`) equal to
+  `probability >= 0.5`. `classes_` is `[0, 1]`; the churn column is looked
+  up by label, not by position.
+- A saved and reloaded pipeline gives the same predictions.
+
+### Tests
+
+| File | Data | What it protects |
+|---|---|---|
+| `tests/conftest.py` | 16 invented customers, real pipeline builder | shared fixtures |
+| `tests/test_input_contract.py` | synthetic | required features, ignored ID/target, missing values, unseen categories, malformed text |
+| `tests/test_prediction.py` | synthetic | probability contract, threshold rule, row order, no refit at inference |
+| `tests/test_persistence.py` | synthetic, `tmp_path` | joblib and `ArtifactStore` round trips |
+| `tests/test_selection.py` | hand-made results | the selection rule and its tie-break |
+| `tests/test_reliability.py` (TP02) | the real CSV; skipped if it is not downloaded | split, training-only statistics, fresh-process reload |
+
+The four synthetic files run in about one second and need no CSV, network
+or MLflow server.
+
+### Hooks
+
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml) pins `ruff-pre-commit`
+`v0.17.5` (the Ruff version in `uv.lock`) with `ruff-check --fix` before
+`ruff-format`, limited to `telco_churn/`, `scripts/` and `tests/`, and
+`pre-commit-hooks` `v6.0.0` for trailing whitespace, end of file, YAML/TOML
+syntax and large files. When a hook modifies a file the commit is refused:
+review with `git diff`, `git add` again and commit again. Do not use
+`--no-verify`.
+
+Training, pytest and the MLflow server are not hooks: they are too slow for
+every commit. Hooks are local and can be bypassed, so they do not replace
+checks on the server side (CI, next TP).
+
+> On a Windows machine where Smart App Control blocks the uv environment
+> (see the note in Quick start), install and run the hooks from WSL. A hook
+> installed from WSL makes `git commit` from Windows fail with
+> "`pre-commit` not found"; commit from WSL on that machine.
+
+Generated files stay out of Git: `.venv/`, `.pytest_cache/`,
+`.ruff_cache/`, `.coverage`, `coverage.xml`, `htmlcov/`.
+
 ## Handover notes
 
 See `evidence/tp01/handover.md` for peer-execution feedback, the issues
@@ -351,3 +436,5 @@ found and their resolutions, and the current limitations of this handover.
 Written answers to every checkpoint question of the TP01 brief are kept in
 `evidence/tp01/questions_answers.md`. TP02 peer review:
 `evidence/tp02/peer_review.md`.
+TP03 and TP04 evidence: `reports/tp03_summary.md`, `reports/tp04_summary.md`,
+`evidence/tp03/` and `evidence/tp04/`.

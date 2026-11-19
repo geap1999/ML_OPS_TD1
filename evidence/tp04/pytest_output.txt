@@ -1,0 +1,51 @@
+$ uv run pytest -q
+..............................................                           [100%]
+46 passed in 5.82s
+exit code: 0
+
+$ uv run pytest -v --durations=3 tests/test_input_contract.py tests/test_prediction.py tests/test_persistence.py tests/test_selection.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-9.1.1, pluggy-1.7.0 -- /home/matin/.venvs/telco-churn/bin/python
+cachedir: .pytest_cache
+rootdir: <project>
+configfile: pyproject.toml
+plugins: cov-7.1.0, platformdirs-4.14.7, anyio-4.16.0
+collecting ... collected 30 items
+
+tests/test_input_contract.py::TestRequiredFeatures::test_schema_requires_exactly_the_six_agreed_features PASSED [  3%]
+tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[tenure] PASSED [  6%]
+tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[MonthlyCharges] PASSED [ 10%]
+tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[TotalCharges] PASSED [ 13%]
+tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[Contract] PASSED [ 16%]
+tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[InternetService] PASSED [ 20%]
+tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[PaymentMethod] PASSED [ 23%]
+tests/test_input_contract.py::TestRequiredFeatures::test_id_and_target_do_not_influence_predictions PASSED [ 26%]
+tests/test_input_contract.py::TestSupportedInputVariation::test_unseen_category_was_really_absent_from_training PASSED [ 30%]
+tests/test_input_contract.py::TestSupportedInputVariation::test_missing_numeric_and_unseen_category_are_scored PASSED [ 33%]
+tests/test_input_contract.py::TestSupportedInputVariation::test_variation_in_one_row_leaves_other_rows_unchanged PASSED [ 36%]
+tests/test_input_contract.py::TestSupportedInputVariation::test_blank_text_is_treated_like_a_missing_number PASSED [ 40%]
+tests/test_input_contract.py::TestSupportedInputVariation::test_malformed_numeric_text_is_rejected PASSED [ 43%]
+tests/test_input_contract.py::TestSupportedInputVariation::test_prediction_does_not_modify_the_input_batch PASSED [ 46%]
+tests/test_prediction.py::TestProbabilityContract::test_probability_matrix_is_well_formed PASSED [ 50%]
+tests/test_prediction.py::TestProbabilityContract::test_positive_class_is_looked_up_in_classes PASSED [ 53%]
+tests/test_prediction.py::TestProbabilityContract::test_predictions_follow_the_threshold_rule PASSED [ 56%]
+tests/test_prediction.py::TestProbabilityContract::test_one_output_row_per_customer_in_the_same_order PASSED [ 60%]
+tests/test_prediction.py::TestProbabilityContract::test_scores_respond_to_the_inputs PASSED [ 63%]
+tests/test_prediction.py::TestInferenceIsStateless::test_prediction_leaves_learned_statistics_unchanged PASSED [ 66%]
+tests/test_persistence.py::TestJoblibRoundTrip::test_reload_preserves_predictions PASSED [ 70%]
+tests/test_persistence.py::TestJoblibRoundTrip::test_reloaded_object_still_contains_the_preprocessing PASSED [ 73%]
+tests/test_persistence.py::TestArtifactStoreRoundTrip::test_loaded_artifact_reproduces_reference_predictions PASSED [ 76%]
+tests/test_persistence.py::TestArtifactStoreRoundTrip::test_modified_pipeline_file_is_refused PASSED [ 80%]
+tests/test_selection.py::TestSelectionRule::test_simpler_candidate_wins_inside_the_tolerance PASSED [ 83%]
+tests/test_selection.py::TestSelectionRule::test_best_candidate_wins_outside_the_tolerance PASSED [ 86%]
+tests/test_selection.py::TestSelectionRule::test_baseline_is_never_selected PASSED [ 90%]
+tests/test_selection.py::TestSelectionRule::test_selection_without_a_learned_candidate_is_an_error PASSED [ 93%]
+tests/test_selection.py::TestSelectionRule::test_selection_ignores_metrics_other_than_the_configured_one PASSED [ 96%]
+tests/test_selection.py::TestSelectionRule::test_tied_candidates_are_listed_simplest_first PASSED [100%]
+
+============================= slowest 3 durations ==============================
+0.06s setup    tests/test_prediction.py::TestProbabilityContract::test_scores_respond_to_the_inputs
+0.04s setup    tests/test_input_contract.py::TestRequiredFeatures::test_missing_required_feature_is_rejected[tenure]
+0.03s setup    tests/test_persistence.py::TestArtifactStoreRoundTrip::test_modified_pipeline_file_is_refused
+============================== 30 passed in 0.89s ==============================
+exit code: 0

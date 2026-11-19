@@ -1,0 +1,108 @@
+### Regression 2: the save helper persists only the classifier
+
+$ git diff telco_churn/artifacts.py
+diff --git a/telco_churn/artifacts.py b/telco_churn/artifacts.py
+index 0653d53..5253c90 100644
+--- a/telco_churn/artifacts.py
++++ b/telco_churn/artifacts.py
+@@ -103,7 +103,7 @@ class ArtifactStore:
+             Path of the written ``metadata.json``.
+         """
+         self.directory.mkdir(parents=True, exist_ok=True)
+-        joblib.dump(pipeline, self.directory / self.PIPELINE)
++        joblib.dump(pipeline.named_steps["classifier"], self.directory / self.PIPELINE)
+         ReportWriter.write_csv(self.directory / self.ALLOCATION, allocation)
+         ReportWriter.write_csv(self.directory / self.REFERENCE_INPUTS, reference_inputs)
+         ReportWriter.write_csv(self.directory / self.REFERENCE_PREDICTIONS, reference_predictions)
+
+$ uv run pytest -q tests/test_persistence.py
+..F.                                                                     [100%]
+=================================== FAILURES ===================================
+_ TestArtifactStoreRoundTrip.test_loaded_artifact_reproduces_reference_predictions _
+
+self = <test_persistence.TestArtifactStoreRoundTrip object at 0x79f666f666c0>
+saved = <telco_churn.artifacts.ArtifactStore object at 0x79f666e3aa20>
+
+    def test_loaded_artifact_reproduces_reference_predictions(self, saved):
+        """Predicting the saved raw batch after loading gives the saved predictions.
+    
+        The reference batch is read back from CSV as text, so this also checks
+        that the input parsing gives the same numbers after a round trip.
+        """
+        artifact = saved.load()
+        predictor = ChurnPredictor.from_loaded(artifact)
+    
+>       actual = predictor.predict(artifact.reference_inputs())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_persistence.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+telco_churn/prediction.py:90: in predict
+    scores, _ = self.evaluator.positive_scores(self.pipeline, features)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+telco_churn/evaluation.py:101: in positive_scores
+    return model.predict_proba(features)[:, column], "predict_proba"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<site-packages>/sklearn/linear_model/_logistic.py:1600: in predict_proba
+    return super()._predict_proba_lr(X)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<site-packages>/sklearn/linear_model/_base.py:437: in _predict_proba_lr
+    prob = self.decision_function(X)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+<site-packages>/sklearn/linear_model/_base.py:389: in decision_function
+    X = validate_data(self, X, accept_sparse="csr", reset=False)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<site-packages>/sklearn/utils/validation.py:3041: in validate_data
+    out = check_array(X, input_name="X", **check_params)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<site-packages>/sklearn/utils/validation.py:1038: in check_array
+    array = _asarray_with_order(array, order=order, dtype=dtype, xp=xp)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<site-packages>/sklearn/utils/_array_api.py:983: in _asarray_with_order
+    array = numpy.asarray(array, order=order, dtype=dtype)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self =     tenure  MonthlyCharges  ... InternetService              PaymentMethod
+0      1.0           70.35  ...     Fiber o... transfer (automatic)
+15    30.0           49.95  ...             DSL           Electronic check
+
+[16 rows x 6 columns]
+dtype = dtype('float64'), copy = None
+
+    def __array__(
+        self, dtype: npt.DTypeLike | None = None, copy: bool | None = None
+    ) -> np.ndarray:
+        if copy is False and not self._mgr.is_single_block and not self.empty:
+            # check this manually, otherwise ._values will already return a copy
+            # and np.array(values, copy=False) will not raise an error
+            raise ValueError(
+                "Unable to avoid copy while creating an array as requested."
+            )
+        values = self._values
+        if copy is None:
+            # Note: branch avoids `copy=None` for NumPy 1.x support
+>           arr = np.asarray(values, dtype=dtype)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           ValueError: could not convert string to float: 'Month-to-month'
+
+<site-packages>/pandas/core/generic.py:1985: ValueError
+=============================== warnings summary ===============================
+tests/test_persistence.py::TestArtifactStoreRoundTrip::test_loaded_artifact_reproduces_reference_predictions
+  <site-packages>/sklearn/utils/validation.py:2823: UserWarning: X has feature names, but LogisticRegression was fitted without feature names
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_persistence.py::TestArtifactStoreRoundTrip::test_loaded_artifact_reproduces_reference_predictions
+1 failed, 3 passed, 1 warning in 0.54s
+exit code: 1
+
+### Repair: restore the implementation
+
+$ git checkout -- telco_churn/artifacts.py && git status --short
+
+$ uv run pytest -q tests/test_persistence.py
+....                                                                     [100%]
+4 passed in 0.32s
+exit code: 0

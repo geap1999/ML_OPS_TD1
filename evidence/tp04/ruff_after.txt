@@ -1,0 +1,7 @@
+$ uv run ruff check telco_churn scripts tests
+All checks passed!
+exit code: 0
+
+$ uv run ruff format --check telco_churn scripts tests
+30 files already formatted
+exit code: 0
