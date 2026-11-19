@@ -99,3 +99,12 @@ class TestSelectionRule:
         tree = self.candidate("tree", "decision_tree", rank=2, score=0.600)
         tree = replace(tree, validation=replace(tree.validation, recall=0.99, f1=0.99))
         assert selector.select([tree, forest]).selected == "forest"
+
+    def test_tied_candidates_are_listed_simplest_first(self, selector):
+        """Candidates inside the tolerance are reported in order of complexity."""
+        results = [
+            self.candidate("forest", "random_forest", rank=3, score=0.660),
+            self.candidate("tree", "decision_tree", rank=2, score=0.655),
+            self.candidate("logistic", "logistic_regression", rank=1, score=0.652),
+        ]
+        assert selector.select(results).tied == ["logistic", "tree", "forest"]
