@@ -430,6 +430,15 @@ checks on the server side (CI, next TP).
 Generated files stay out of Git: `.venv/`, `.pytest_cache/`,
 `.ruff_cache/`, `.coverage`, `coverage.xml`, `htmlcov/`.
 
+### VS Code (optional)
+
+[`.vscode.example/`](.vscode.example/) is a ready-made configuration: pytest
+in the Testing panel, Ruff on save, Run and Debug entries for every script,
+tasks for the checks above and for the MLflow server, and one
+"Launch everything" entry. Copy it to `.vscode/` (ignored by Git) and open
+the repository root; details in
+[`.vscode.example/README.md`](.vscode.example/README.md).
+
 ## Handover notes
 
 See `evidence/tp01/handover.md` for peer-execution feedback, the issues

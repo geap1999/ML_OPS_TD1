@@ -1,0 +1,208 @@
+{
+    // Run with: Terminal > Run Task...   (or Ctrl+Shift+P > "Tasks: Run Task")
+    // Every task runs from the repository root, through uv.
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+            "MLFLOW_DISABLE_AGENT_HINT": "1"
+        }
+    },
+    "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+    },
+    "problemMatcher": [],
+    "tasks": [
+        // ------------------------------------------------------------ setup
+        {
+            "label": "Setup: uv sync (recreate the locked environment)",
+            "type": "process",
+            "command": "uv",
+            "args": ["sync", "--locked"]
+        },
+        {
+            "label": "Setup: download the data (verifies SHA-256)",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "python", "scripts/download_data.py"]
+        },
+        {
+            "label": "Setup: install the pre-commit hook",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "pre-commit", "install"]
+        },
+        {
+            "label": "Setup: everything (sync + data + hook)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Setup: uv sync (recreate the locked environment)",
+                "Setup: download the data (verifies SHA-256)",
+                "Setup: install the pre-commit hook"
+            ]
+        },
+
+        // ------------------------------------------------------------ tests
+        {
+            "label": "Tests: pytest",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "pytest", "-q"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Tests: fast synthetic tests only (no CSV)",
+            "type": "process",
+            "command": "uv",
+            "args": [
+                "run",
+                "pytest",
+                "-q",
+                "tests/test_input_contract.py",
+                "tests/test_prediction.py",
+                "tests/test_persistence.py",
+                "tests/test_selection.py"
+            ],
+            "group": "test"
+        },
+        {
+            "label": "Tests: coverage",
+            "type": "process",
+            "command": "uv",
+            "args": [
+                "run",
+                "pytest",
+                "--cov=telco_churn",
+                "--cov-report=term-missing",
+                "--cov-report=xml:coverage.xml"
+            ],
+            "group": "test"
+        },
+
+        // ---------------------------------------------------------- quality
+        {
+            "label": "Quality: ruff check",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "ruff", "check", "telco_churn", "scripts", "tests"]
+        },
+        {
+            "label": "Quality: ruff format --check",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "ruff", "format", "--check", "telco_churn", "scripts", "tests"]
+        },
+        {
+            "label": "Quality: ruff fix + format (modifies files)",
+            "dependsOrder": "sequence",
+            "dependsOn": ["_ruff: check --fix", "_ruff: format"]
+        },
+        {
+            "label": "_ruff: check --fix",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "ruff", "check", "--fix", "telco_churn", "scripts", "tests"],
+            "hide": true
+        },
+        {
+            "label": "_ruff: format",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "ruff", "format", "telco_churn", "scripts", "tests"],
+            "hide": true
+        },
+        {
+            "label": "Quality: pre-commit (all files)",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "pre-commit", "run", "--all-files"]
+        },
+        {
+            "label": "Quality: all checks (ruff + format + tests)",
+            "dependsOrder": "sequence",
+            "dependsOn": ["Quality: ruff check", "Quality: ruff format --check", "Tests: pytest"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+
+        // ----------------------------------------------------------- MLflow
+        {
+            // Background task: "ready" as soon as the health check answers.
+            // If a server already answers on the configured port, nothing is started.
+            "label": "MLflow: start server",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "python", "${workspaceFolder}/.vscode/start_mlflow.py", "."],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "mlflow",
+                "clear": true
+            },
+            "problemMatcher": {
+                "owner": "mlflow-server",
+                "pattern": {
+                    "regexp": "^__no_problem_is_ever_reported__$",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^MLFLOW STARTING",
+                    "endsPattern": "^MLFLOW (READY|ALREADY RUNNING|FAILED)"
+                }
+            }
+        },
+        {
+            "label": "MLflow: open the UI in the browser",
+            "type": "process",
+            "command": "uv",
+            "args": ["run", "python", "-m", "webbrowser", "http://127.0.0.1:5000"],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "MLflow: start server and open the UI",
+            "dependsOrder": "sequence",
+            "dependsOn": ["MLflow: start server", "MLflow: open the UI in the browser"]
+        },
+        {
+            // Stops the local tracking server and its workers. The storage is not touched.
+            "label": "MLflow: stop server",
+            "type": "shell",
+            "command": "pkill -f 'mlflow server'; pkill -f huey_consumer; echo 'MLflow server stopped (storage untouched: mlflow.db, mlartifacts/).'",
+            "windows": {
+                "command": "Get-NetTCPConnection -LocalPort 5000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { taskkill /PID $_.OwningProcess /T /F }; Write-Host 'MLflow server stopped (storage untouched: mlflow.db, mlartifacts/).'",
+                "options": {
+                    "shell": {
+                        "executable": "powershell.exe",
+                        "args": ["-NoProfile", "-Command"]
+                    }
+                }
+            }
+        },
+
+        // ------------------------------------------------------- everything
+        {
+            // Used by the "Launch everything" debug configuration.
+            "label": "Everything: prepare (data + server + UI)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Setup: download the data (verifies SHA-256)",
+                "MLflow: start server",
+                "MLflow: open the UI in the browser"
+            ]
+        }
+    ]
+}

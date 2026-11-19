@@ -194,3 +194,6 @@ mlflow.db
 mlflow.db-*
 mlartifacts/
 mlruns/
+
+# Personal VS Code configuration; the shared template is .vscode.example/
+.vscode/

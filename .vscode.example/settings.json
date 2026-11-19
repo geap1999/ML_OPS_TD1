@@ -1,0 +1,51 @@
+{
+    // Shared VS Code settings for this project. Nothing here is machine-specific.
+    //
+    // Interpreter: after `uv sync --locked`, VS Code finds the project's .venv
+    // by itself. If the Testing panel stays empty, run "Python: Select
+    // Interpreter" and choose .venv.
+
+    // ---- Testing panel: pytest ----
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": ["tests"],
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "python.terminal.activateEnvironment": true,
+
+    // ---- Ruff: same rules as pyproject.toml and the pre-commit hooks ----
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "editor.rulers": [99]
+    },
+
+    // ---- Files: the repository uses LF everywhere (.gitattributes) ----
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.ruff_cache": true
+    },
+    "search.exclude": {
+        "**/.venv": true,
+        "**/mlartifacts": true,
+        "**/uv.lock": true
+    },
+    "files.watcherExclude": {
+        "**/.venv/**": true,
+        "**/mlartifacts/**": true
+    },
+
+    // ---- Terminals opened in VS Code: quieter MLflow output ----
+    "terminal.integrated.env.windows": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+    "terminal.integrated.env.linux": { "MLFLOW_DISABLE_AGENT_HINT": "1" },
+    "terminal.integrated.env.osx": { "MLFLOW_DISABLE_AGENT_HINT": "1" }
+}
