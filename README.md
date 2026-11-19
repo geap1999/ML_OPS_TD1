@@ -13,6 +13,10 @@ single customer snapshot (IBM Telco Customer Churn dataset).
   (preprocessing + classifier) is compared across three learned models and a
   baseline on one fixed split, and the selected *fitted* pipeline is saved
   with metadata so it can be reloaded for inference without retraining.
+- **TP03**: MLflow experiment tracking. Every candidate is a run with its
+  parameters, validation metrics, code and data identity, artifacts and
+  fitted pipeline; the selected pipeline is registered as `telco-churn` with
+  the alias `candidate` and reloaded in a fresh process.
 
 ## Generated structure (TP01, Option A)
 
@@ -240,6 +244,105 @@ the training ones.
   Fit times are descriptive, measured on one machine.
 - The test set has not been evaluated yet. Do it once, for the frozen model,
   after selection is final.
+
+## TP03: track, compare and recover the model with MLflow
+
+The modelling is unchanged from TP02: same six features, same 60/20/20
+customer allocation (seed 42), same pipeline builder, same evaluator, same
+selection rule, test set still unused. TP03 adds an MLflow record around it,
+so a colleague can find a run, see what produced it and load the selected
+pipeline without training again.
+
+Evidence, screenshots and answers: [`reports/tp03_summary.md`](reports/tp03_summary.md).
+
+### 1. Start the tracking server (terminal 1)
+
+From the project root, and keep it running:
+
+```sh
+uv run mlflow server --host 127.0.0.1 --port 5000 --backend-store-uri sqlite:///mlflow.db --artifacts-destination ./mlartifacts
+```
+
+UI: <http://127.0.0.1:5000>. The address, experiment name, registered model
+name and alias are the `tracking` section of
+[`configs/train.json`](configs/train.json). If port 5000 is taken, change it
+in the server command **and** in `tracking.tracking_uri`.
+
+### 2. Tracked training (terminal 2)
+
+```sh
+uv run python scripts/train_tracked.py
+```
+
+One MLflow run per candidate in the experiment `telco-churn-tp03`. Each run
+records, explicitly (no autologging):
+
+| Category | What is recorded |
+|---|---|
+| Parameters | `model_type`, split seed, threshold, primary metric, preprocessing settings (`prep__*`) and the classifier's **actual** hyperparameters read back from the fitted estimator (`clf__*`) |
+| Metrics | `val_average_precision`, `val_precision`, `val_recall`, `val_f1`, plus accuracy, ROC AUC, the four confusion counts and `fit_seconds` |
+| Tags | `git_commit`, `git_dirty`, `data_sha256` (original CSV), `config_sha256`, `split_allocation_sha256`, `role`, and after selection `selected` |
+| Artifacts | `evaluation/val_confusion_matrix.{png,json}` (rows = true, columns = predicted, order `[0, 1]`), `provenance.json`, `split/split_allocation.csv`, `reference/reference_{inputs,predictions}.csv` |
+| Dataset inputs | `telco_train` (context `training`) and `telco_validation` (context `validation`) |
+| Model | the complete fitted pipeline (preprocessing + classifier), logged with `mlflow.sklearn.log_model` under the name `churn_pipeline`, with an input example of the six unencoded features |
+
+After the runs, the pre-registered rule selects one candidate on validation
+average precision. Its logged model is registered as **`telco-churn`** and
+the alias **`candidate`** is pointed at the new version. The script prints
+the run ID, the logged model URI and the registered version, and writes
+`reports/tp03_runs.json` and `reports/tp03_run_comparison.csv` (exported
+from the server with `mlflow.search_runs`).
+
+Running the script again creates new runs and a new registered version, and
+moves the alias to it. Commit your changes before a run you want to keep:
+`git_dirty = True` means the recorded commit does not describe the code that
+ran.
+
+### 3. Inference in a fresh process (terminal 2, server still running)
+
+```sh
+uv run python scripts/verify_registered.py
+uv run python scripts/predict_registered.py --input evidence/tp02/example_new_customers.csv
+```
+
+Both load `models:/telco-churn@candidate` and never call `fit`.
+`verify_registered.py` disables `fit` on the loaded pipeline, predicts the
+10-customer reference batch logged by the source run and compares with the
+predictions the in-memory pipeline made before logging (tolerance `1e-12`
+on probabilities, classes must be identical); evidence goes to
+`reports/tp03_reload_check.json`. `predict_registered.py` scores a CSV with
+the same stateless input parsing as TP02; the schema and threshold come from
+the source run's `provenance.json`, not from local files.
+
+### Where tracking data live, and how to recover the selected model
+
+| Location | Holds | In Git? |
+|---|---|---|
+| `mlflow.db` (SQLite backend store) | experiments, runs, parameters, metrics, tags, dataset records, registry names, versions and aliases | no |
+| `mlartifacts/` (artifact store) | model files (`model.pkl`, `MLmodel`, environment files), confusion matrices, provenance JSON, allocation and reference CSVs | no |
+| `reports/tp03_*` | run IDs, model URI, version, alias and reload evidence of the submitted run | yes |
+
+Both stores are local to this machine and ignored by Git; ignoring is not
+deleting. Stopping the server deletes nothing: restart it from the same
+project root with the same command and the runs, the registered version and
+the alias are back. To recover the selected model, start the server and
+load `models:/telco-churn@candidate` (or the pinned version,
+`models:/telco-churn/<version>`, recorded in `reports/tp03_runs.json`).
+
+### Limitations
+
+- A run ID, a `models:/` URI or `http://127.0.0.1:5000` mean nothing on
+  another machine. A colleague needs **both** `mlflow.db` and `mlartifacts/`
+  (or access to a shared tracking server), plus this repository at the
+  recorded commit and the locked environment (`uv sync --locked`), because
+  the logged model is a pickle that imports scikit-learn.
+- The original CSV is not in MLflow. The run stores its SHA-256 and a
+  dataset digest, which identify the data but cannot recreate it; get the
+  CSV with `scripts/download_data.py`.
+- The alias is a movable pointer. For a reproducible handover, quote the
+  version number with it.
+- One split, modest configurations: the comparison is a classroom exercise,
+  not evidence of a statistically significant difference.
 
 ## Handover notes
 

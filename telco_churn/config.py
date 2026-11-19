@@ -46,12 +46,24 @@ class EstimatorConfig:
         estimator: Key of the estimator in ``EstimatorRegistry``.
         params: Keyword arguments passed to the estimator constructor.
         complexity_rank: Lower means simpler; used to break selection ties.
+        run_name: Descriptive name of the candidate's tracked run; the
+            candidate name is used when it is empty.
     """
 
     name: str
     estimator: str
     params: dict[str, Any] = field(default_factory=dict)
     complexity_rank: int = 0
+    run_name: str = ""
+
+    @property
+    def tracked_name(self) -> str:
+        """Name shown for this candidate in the experiment tracker.
+
+        Returns:
+            ``run_name`` when set, otherwise ``name``.
+        """
+        return self.run_name or self.name
 
 
 @dataclass(frozen=True)
@@ -106,6 +118,40 @@ class OutputConfig:
 
 
 @dataclass(frozen=True)
+class TrackingConfig:
+    """Where tracked runs are recorded and how the selected model is named.
+
+    Attributes:
+        tracking_uri: Address of the MLflow tracking server.
+        experiment: Experiment that groups the candidate runs.
+        model_name: Name of the logged model inside each run.
+        registered_model: Name of the managed model in the registry.
+        alias: Mutable registry alias pointing at the selected version.
+        run_report: JSON record of the tracked runs and the registration.
+        comparison_csv: Candidate comparison exported from the tracking server.
+        reload_report: JSON evidence of the fresh-process reload check.
+    """
+
+    tracking_uri: str
+    experiment: str
+    model_name: str
+    registered_model: str
+    alias: str
+    run_report: Path
+    comparison_csv: Path
+    reload_report: Path
+
+    @property
+    def alias_uri(self) -> str:
+        """Model URI that resolves the alias at load time.
+
+        Returns:
+            ``models:/<registered_model>@<alias>``.
+        """
+        return f"models:/{self.registered_model}@{self.alias}"
+
+
+@dataclass(frozen=True)
 class TrainingConfig:
     """Complete, validated content of ``configs/train.json``.
 
@@ -126,6 +172,8 @@ class TrainingConfig:
         selection: Selection rule.
         outputs: Output locations.
         raw: The parsed JSON, kept verbatim for run metadata.
+        tracking: Experiment-tracking settings; ``None`` when the file has no
+            ``tracking`` section (plain TP02 training does not need one).
     """
 
     path: Path
@@ -139,6 +187,7 @@ class TrainingConfig:
     selection: SelectionConfig
     outputs: OutputConfig
     raw: dict[str, Any]
+    tracking: TrackingConfig | None = None
 
     @classmethod
     def from_json(cls, path: Path = DEFAULT_CONFIG_PATH) -> TrainingConfig:
@@ -175,7 +224,24 @@ class TrainingConfig:
             selection=SelectionConfig(**raw["selection"]),
             outputs=OutputConfig(**{key: cls._resolve(value) for key, value in outputs.items()}),
             raw=raw,
+            tracking=cls._tracking(raw["tracking"]) if "tracking" in raw else None,
         )
+
+    @classmethod
+    def _tracking(cls, section: dict[str, Any]) -> TrackingConfig:
+        """Builds the tracking settings, resolving their report paths.
+
+        Args:
+            section: The ``tracking`` section of the configuration file.
+
+        Returns:
+            The tracking settings.
+        """
+        paths = ("run_report", "comparison_csv", "reload_report")
+        values = {
+            key: cls._resolve(value) if key in paths else value for key, value in section.items()
+        }
+        return TrackingConfig(**values)
 
     @staticmethod
     def _resolve(relative: str) -> Path:

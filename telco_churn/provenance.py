@@ -23,7 +23,7 @@ class RunProvenance:
         PACKAGES: Distributions whose installed versions are recorded.
     """
 
-    PACKAGES = ("telco_churn", "pandas", "numpy", "scikit-learn", "scipy", "joblib")
+    PACKAGES = ("telco_churn", "pandas", "numpy", "scikit-learn", "scipy", "joblib", "mlflow")
 
     def __init__(self, project_root: Path = PROJECT_ROOT) -> None:
         """Initialises the recorder.
